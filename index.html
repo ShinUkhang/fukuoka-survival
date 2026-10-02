@@ -22,6 +22,9 @@
   /* HUD */
   #hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;pointer-events:none;z-index:20}
   #hud-in{width:min(1060px,100%);display:flex;align-items:center;gap:10px;padding:10px 14px}
+  .toastmsg{background:rgba(10,14,28,.88);border:1px solid rgba(255,217,61,.55);border-radius:12px;color:#ffe88f;font-weight:800;font-size:14px;padding:8px 14px;opacity:0;transform:translateX(24px);transition:opacity .3s,transform .3s;white-space:nowrap;backdrop-filter:blur(4px);box-shadow:0 4px 16px rgba(0,0,0,.4)}
+  .toastmsg.show{opacity:1;transform:translateX(0)}
+  #toast{position:absolute;top:64px;right:14px;z-index:40;pointer-events:none;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
   .pill{background:rgba(10,14,28,.72);border:1px solid rgba(255,255,255,.16);border-radius:999px;color:#fff;font-weight:800;font-size:14px;padding:6px 14px;white-space:nowrap;backdrop-filter:blur(4px)}
   #hpwrap{flex:1;max-width:340px;height:26px;background:rgba(10,14,28,.72);border:1px solid rgba(255,255,255,.16);border-radius:999px;overflow:hidden;position:relative}
   #hpbar{height:100%;width:100%;border-radius:999px;background:linear-gradient(180deg,#7dff8a,#2ecc40);transition:width .15s}
@@ -71,6 +74,7 @@
 <div id="wrap">
   <canvas id="cv"></canvas>
   <div id="xpwrap"><div id="xpbar"></div></div>
+  <div id="toast"></div>
   <div id="hud"><div id="hud-in">
     <div id="hpwrap"><div id="hpbar"></div><div id="hptext">100/100</div></div>
     <div class="pill" id="h-time">0:00</div>
@@ -1213,7 +1217,42 @@ function rollCards(){
   }
   return out;
 }
+function toast(msg){
+  const box=$('toast');if(!box)return;
+  const t=document.createElement('div');t.className='toastmsg';t.textContent=msg;
+  box.appendChild(t);
+  while(box.children.length>3)box.firstChild.remove();
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),350);},2200);
+}
+function autoLevelUp(){
+  // survival: random pick, no card UI
+  while(pendingLv>0&&state==='play'){
+    sLv();
+    boomParts(player.x,player.y,'#c77dff',24);
+    const cards=rollCards();
+    const c=cards[irnd(0,cards.length-1)];
+    let label='';
+    if(c.kind==='w'){
+      const w=WEAPONS[c.id];
+      player.weapons[c.id]=(player.weapons[c.id]||0)+1;
+      label='⬆️ '+w.icon+' '+LN(w)+' Lv'+player.weapons[c.id];
+    }else if(c.kind==='s'){
+      const s=STATS[c.id];
+      applyStat(c.id);
+      label='⬆️ '+s.icon+' '+LN(s);
+    }else{
+      const pw=POWERS[c.id];
+      if(c.id==='giant')applyGiant();else applyFly();
+      label=pw.icon+' '+(LANG==='ja'?pw.ja:pw.ko);
+    }
+    toast(label);
+    pendingLv--;
+    updateHUD();updateWicons();
+  }
+}
 function openLevelUp(){
+  if(gameMode==='survival'){autoLevelUp();return;}
   state='levelup';sLv();
   boomParts(player.x,player.y,'#c77dff',24);
   const box=$('lv-cards');box.innerHTML='';
