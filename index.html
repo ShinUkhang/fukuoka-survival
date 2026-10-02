@@ -98,7 +98,7 @@
       🗺️ <b>여행지:</b> 하카타역→다자이후→나카스→고쿠라성→모지코
     </div>
     <div id="lang-sw"><button id="lang-ko" class="langbtn">한국어</button><button id="lang-ja" class="langbtn">日本語</button></div>
-    <button class="pxbtn" id="btn-start-ta" style="margin-bottom:10px">🏆 타임어택 (1분)</button><br>
+    <button class="pxbtn" id="btn-start-ta" style="margin-bottom:10px">🏆 타임어택 (2분)</button><br>
     <button class="pxbtn" id="btn-start-sv" style="background:linear-gradient(180deg,#5cb8ff,#2d7fe0);box-shadow:0 6px 0 #1a4a8a,0 10px 24px rgba(45,127,224,.45);font-size:15px;padding:11px 34px">🦆 서바이벌</button>
     <div id="best-line"></div>
   </div></div>
@@ -748,7 +748,7 @@ bene_yatai:'🍜 든든한 한 끼! 체력 풀회복',bene_retro:'🚂 추억 �
 bene_school:'📣 응원! 공격력 UP (15초)',bene_tower:'🗼 전망대! 쿨다운 감소 (20초)',
 bene_canal:'🎡 쇼핑! 무기 강화',bene_kushida:'⛩️ 야마카사! 무적 (8초)',
 bene_giant:'🍄 파워 모찌! 거대 오리 변신! (12초)',bene_fly:'🪽 하늘을 날다! 무적 비행! (10초)',
-mode_ta:'🏆 타임어택 (1분)',mode_sv:'🦆 서바이벌',
+mode_ta:'🏆 타임어택 (2분)',mode_sv:'🦆 서바이벌',
 sc_title:'🏆 타임어택 결과',sc_score:'점수',sc_name_ph:'이름 입력 (12자)',
 sc_save:'📸 이미지 저장',sc_again:'다시 도전',sc_board:'🏆 명예의 전당',
 sc_timeup:'시간 종료!',sc_died:'전사...',ta_time:'남은 시간'},
@@ -768,7 +768,7 @@ bene_yatai:'🍜 しっかりご飯! 体力全回復',bene_retro:'🚂 思い出
 bene_school:'📣 応援! 攻撃力UP (15秒)',bene_tower:'🗼 展望台! クールダウン減少 (20秒)',
 bene_canal:'🎡 ショッピング! 武器強化',bene_kushida:'⛩️ 山笠! 無敵 (8秒)',
 bene_giant:'🍄 パワー餅! 巨大アヒル変身! (12秒)',bene_fly:'🪽 空を飛ぶ! 無敵飛行! (10秒)',
-mode_ta:'🏆 タイムアタック (1分)',mode_sv:'🦆 サバイバル',
+mode_ta:'🏆 タイムアタック (2分)',mode_sv:'🦆 サバイバル',
 sc_title:'🏆 タイムアタック結果',sc_score:'スコア',sc_name_ph:'名前入力 (12字)',
 sc_save:'📸 画像保存',sc_again:'もう一度',sc_board:'🏆 殿堂入り',
 sc_timeup:'時間終了!',sc_died:'戦死...',ta_time:'残り時間'},
@@ -808,7 +808,7 @@ let state='title';
 let player,enemies,bullets,gems,pickups,parts,dnums,mets,ltns;
 let camX=0,camY=0,shake=0,gameT=0,kills=0,spawnT=0,bossN=0,waveN=0;
 let castleT=0,castleCd=0,castleFireT=0,trainT=-1,trainCd=0,eliteT=25,finalSpawned=false;
-let gameMode='survival',timeLeft=60,score=0;
+let gameMode='survival',timeLeft=120,score=0;
 const cshots=[];
 let magnetAll=0;
 
@@ -846,7 +846,7 @@ function resetGame(){
   enemies=[];bullets=[];gems=[];pickups=[];parts=[];dnums=[];mets=[];ltns=[];
   camX=player.x-LW/2;camY=player.y-LH/2;shake=0;gameT=0;kills=0;spawnT=0;bossN=0;waveN=0;magnetAll=0;pendingLv=0;
   castleT=0;castleCd=0;trainT=-1;trainCd=0;eliteT=25;finalSpawned=false;cshots.length=0;
-  timeLeft=60;score=0;
+  timeLeft=120;score=0;
   for(const L of LANDMARKS)L.beneCd=0;
   for(let i=0;i<7;i++){const a=i/7*TAU+rnd(-0.3,0.3),d=rnd(420,560);
     const bx=clamp(player.x+Math.cos(a)*d,30,WORLD_W-30),by=clamp(player.y+Math.sin(a)*d,30,WORLD_H-30);
