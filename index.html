@@ -21,7 +21,10 @@
   #wicons{display:flex;gap:6px}
   .wicon{width:34px;height:34px;border-radius:10px;background:rgba(10,14,28,.72);border:1px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:18px;position:relative}
   .wicon b{position:absolute;bottom:-4px;right:-4px;background:#ffb020;color:#3a2200;font-size:10px;font-weight:900;border-radius:6px;padding:0 4px}
-  #btn-pause{pointer-events:auto;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(10,14,28,.72);color:#fff;border-radius:10px;width:36px;height:36px;font-size:17px}
+  #btn-pause,#btn-fs{pointer-events:auto;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(10,14,28,.72);color:#fff;border-radius:10px;width:36px;height:36px;font-size:17px}
+  #lang-sw{display:flex;gap:8px;justify-content:center;margin:14px 0 4px}
+  .langbtn{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#aeb8d8;border-radius:999px;padding:8px 20px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+  .langbtn.on{background:#ffb020;color:#3a2200;border-color:#ffb020}
   /* overlays */
   .ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:40;background:rgba(5,8,18,.55);backdrop-filter:blur(3px)}
   .hidden{display:none!important}
@@ -46,6 +49,7 @@
   #wave-banner{position:absolute;top:64px;left:0;right:0;text-align:center;z-index:25;pointer-events:none;opacity:0;transition:opacity .4s}
   #wave-banner span{background:rgba(180,30,40,.85);color:#fff;font-weight:900;font-size:17px;padding:10px 26px;border-radius:999px;border:1px solid rgba(255,255,255,.3);box-shadow:0 6px 20px rgba(0,0,0,.4)}
   #joy{position:absolute;z-index:30;pointer-events:none;display:none}
+  #minimap{position:absolute;right:10px;bottom:10px;z-index:25;border-radius:10px;border:1px solid rgba(255,255,255,.25);box-shadow:0 4px 14px rgba(0,0,0,.5)}
   .stat-row{display:flex;gap:10px;justify-content:center;margin:14px 0;flex-wrap:wrap}
   .stat{background:rgba(255,255,255,.07);border-radius:12px;padding:10px 18px;min-width:110px}
   .stat .v{font-size:22px;font-weight:900;color:#ffe88f}
@@ -64,15 +68,17 @@
     <div class="pill" id="h-lv">Lv 1</div>
     <div id="wicons"></div>
     <button id="btn-pause">⏸</button>
+    <button id="btn-fs" title="전체화면">⛶</button>
   </div></div>
   <div id="wave-banner"><span id="wave-text"></span></div>
   <div id="joy"></div>
+  <canvas id="minimap" width="150" height="118"></canvas>
 
   <div class="ov" id="ov-title"><div class="card">
     <img class="titleart" id="title-img" alt="후더덕 서바이벌">
-    <h1>후쿠오카 서바이벌</h1>
-    <p class="sub">좀비 비둘기 무리가 몰려온다!<br>후더덕과 함께 후쿠오카 여행에서 살아남아라 🦆🍜</p>
-    <div class="howto">
+    <h1 id="t-title">후쿠오카 서바이벌</h1>
+    <p class="sub" id="t-sub">좀비 비둘기 무리가 몰려온다!<br>후더덕과 함께 후쿠오카 여행에서 살아남아라 🦆🍜</p>
+    <div class="howto" id="t-howto">
       🕹️ <b>이동:</b> WASD / 방향키 / 화면 왼쪽 드래그(조이스틱)<br>
       🍜 <b>공격:</b> 자동! 후쿠오카 명물 무기 6종으로 싸워요<br>
       💎 <b>성장:</b> 기념품 젬을 모아 레벨업 → 3장 중 1장 선택<br>
@@ -80,31 +86,32 @@
       🍜 <b>아이템:</b> 라멘(체력 회복), 자석(젬 흡수)<br>
       🗺️ <b>여행지:</b> 하카타역→다자이후→나카스→고쿠라성→모지코
     </div>
+    <div id="lang-sw"><button id="lang-ko" class="langbtn">한국어</button><button id="lang-ja" class="langbtn">日本語</button></div>
     <button class="pxbtn" id="btn-start">게임 시작</button>
     <div id="best-line"></div>
   </div></div>
 
   <div class="ov hidden" id="ov-level"><div class="card">
-    <h2>⬆️ 레벨 업! 업그레이드 선택</h2>
-    <p class="sub">3장 중 하나를 골라줘</p>
+    <h2 id="t-lvtitle">⬆️ 레벨 업! 업그레이드 선택</h2>
+    <p class="sub" id="t-lvsub">3장 중 하나를 골라줘</p>
     <div id="lv-cards"></div>
   </div></div>
 
   <div class="ov hidden" id="ov-over"><div class="card">
-    <h2>💀 게임 오버</h2>
+    <h2 id="t-overtitle">💀 게임 오버</h2>
     <p class="sub" id="over-msg"></p>
     <div class="stat-row">
-      <div class="stat"><div class="v" id="st-time">0:00</div><div class="k">생존 시간</div></div>
-      <div class="stat"><div class="v" id="st-lv">1</div><div class="k">레벨</div></div>
-      <div class="stat"><div class="v" id="st-kill">0</div><div class="k">처치</div></div>
+      <div class="stat"><div class="v" id="st-time">0:00</div><div class="k" id="t-st-time">생존 시간</div></div>
+      <div class="stat"><div class="v" id="st-lv">1</div><div class="k" id="t-st-lv">레벨</div></div>
+      <div class="stat"><div class="v" id="st-kill">0</div><div class="k" id="t-st-kill">처치</div></div>
     </div>
     <button class="pxbtn" id="btn-again">다시 도전</button>
     <div id="best-line2" style="margin-top:10px;font-size:13px;color:#8f9ac0"></div>
   </div></div>
 
   <div class="ov hidden" id="ov-pause"><div class="card">
-    <h2>⏸ 일시정지</h2>
-    <p class="sub">잠시 쉬는 중...</p>
+    <h2 id="t-pausetitle">⏸ 일시정지</h2>
+    <p class="sub" id="t-pausesub">잠시 쉬는 중...</p>
     <button class="pxbtn" id="btn-resume">계속하기</button><br><br>
     <button class="pxbtn" id="btn-quit" style="background:linear-gradient(180deg,#8a93ad,#5a637e);box-shadow:0 6px 0 #383f55,0 10px 24px rgba(0,0,0,.4);font-size:15px;padding:10px 30px">그만하기</button>
   </div></div>
@@ -209,18 +216,66 @@ const decor=[];
   for(let i=0;i<260;i++)decor.push({k:'f',x:rnd(40,WORLD_W-40),y:rnd(40,WORLD_H-40),c:['#ff8fb3','#ffd93d','#ffffff','#c77dff'][irnd(0,3)],s:rnd(0.7,1.3)});
   for(let i=0;i<160;i++)decor.push({k:'g',x:rnd(40,WORLD_W-40),y:rnd(40,WORLD_H-40),s:rnd(0.7,1.4),r:rnd(0,TAU)});
   for(let i=0;i<26;i++)decor.push({k:'t',x:rnd(60,WORLD_W-60),y:rnd(60,WORLD_H-60),s:rnd(0.8,1.4)});
+  for(let i=0;i<20;i++)decor.push({k:'s',x:rnd(60,WORLD_W-60),y:rnd(60,WORLD_H-60),s:rnd(0.8,1.3)});
+  for(let i=0;i<22;i++)decor.push({k:'b',x:rnd(60,WORLD_W-60),y:rnd(60,WORLD_H-60),s:rnd(0.8,1.3),r:rnd(0,TAU)});
+  for(let i=0;i<16;i++)decor.push({k:'l',x:rnd(60,WORLD_W-60),y:rnd(60,WORLD_H-60),s:rnd(0.8,1.2)});
 })();
 const pond={x:WORLD_W*0.72,y:WORLD_H*0.3,rx:150,ry:95};
 const LANDMARKS=[
-  {f:'station',x:420,y:260,label:'🚉 하카타역'},
-  {f:'torii',x:1330,y:350,label:'⛩️ 다자이후 도리이'},
-  {f:'shrine',x:1560,y:300,label:'🏯 다자이후텐만구'},
-  {f:'yatai',x:2030,y:860,label:'🏮 나카스 야타이'},
-  {f:'castle',x:540,y:1500,label:'🏯 고쿠라성'},
-  {f:'retro',x:2130,y:1660,label:'🚂 모지코 레트로'},
-  {f:'school',x:1380,y:1920,label:'🏫 규슈국제고'},
+  {f:'station',x:420,y:260,label:'🚉 하카타역',lja:'🚉 博多駅'},
+  {f:'torii',x:1330,y:350,label:'⛩️ 다자이후 도리이',lja:'⛩️ 太宰府鳥居'},
+  {f:'shrine',x:1560,y:300,label:'🏯 다자이후텐만구',lja:'🏯 太宰府天満宮'},
+  {f:'yatai',x:2030,y:860,label:'🏮 나카스 야타이',lja:'🏮 中洲屋台'},
+  {f:'castle',x:540,y:1500,label:'🏯 고쿠라성',lja:'🏯 小倉城'},
+  {f:'retro',x:2130,y:1660,label:'🚂 모지코 레트로',lja:'🚂 門司港レトロ'},
+  {f:'school',x:1380,y:1920,label:'🏫 규슈국제고',lja:'🏫 九州国際高校'},
+  {f:'tower',x:1960,y:380,label:'🗼 후쿠오카타워',lja:'🗼 福岡タワー'},
+  {f:'canal',x:900,y:1050,label:'🎡 캐널시티',lja:'🎡 キャナルシティ'},
+  {f:'kushida',x:2320,y:1230,label:'⛩️ 구시다신사',lja:'⛩️ 櫛田神社'},
 ];
 
+function drawTower(px,py){
+  const w=64;
+  ctx.fillStyle="rgba(0,0,0,.22)";ctx.beginPath();ctx.ellipse(px+w/2,py+48,w/2+12,7,0,0,6.3);ctx.fill();
+  const bg=ctx.createLinearGradient(px,0,px+w,0);
+  bg.addColorStop(0,"#9fb6cc");bg.addColorStop(0.5,"#d7e6f5");bg.addColorStop(1,"#8ba3bb");
+  ctx.fillStyle=bg;ctx.beginPath();
+  ctx.moveTo(px+10,py+44);ctx.lineTo(px+26,py-58);ctx.lineTo(px+38,py-58);ctx.lineTo(px+54,py+44);ctx.closePath();ctx.fill();
+  ctx.fillStyle="rgba(255,255,255,.35)";
+  for(let i=0;i<5;i++){const yy=py+34-i*20;ctx.fillRect(px+12+i*3,yy,w-24-i*6,3);}
+  RFG(px+28,py-72,8,16,2,"#e64545","#a92a2a");
+  RF(px+30,py-86,4,14,2,"#f2f2f2");
+  HL(px+32,py-20,5,22);
+}
+function drawCanal(px,py){
+  const w=76;
+  ctx.fillStyle="rgba(0,0,0,.22)";ctx.beginPath();ctx.ellipse(px+w/2,py+42,w/2+10,7,0,0,6.3);ctx.fill();
+  RFG(px,py-6,w,44,10,"#ff9a5c","#e06a2d");
+  RFG(px+6,py-2,18,30,4,"#ffd93d","#e0a92d");
+  RFG(px+29,py-2,18,30,4,"#5cb8ff","#2d7fe0");
+  RFG(px+52,py-2,18,30,4,"#ff7d9c","#e02d5c");
+  ctx.font='900 11px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff';
+  ctx.fillText('CANAL',px+w/2,py-12);
+  const wg=ctx.createLinearGradient(0,py+42,0,py+58);
+  wg.addColorStop(0,"#4db8ff");wg.addColorStop(1,"#1d6fd1");
+  ctx.fillStyle=wg;RR(px-6,py+42,w+12,16,8);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=1.6;
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(px+4+i*24,py+50);ctx.quadraticCurveTo(px+10+i*24,py+47,px+16+i*24,py+50);ctx.stroke();}
+  HL(px+14,py+2,10,4);
+}
+function drawKushida(px,py){
+  const w=70;
+  ctx.fillStyle="rgba(0,0,0,.22)";ctx.beginPath();ctx.ellipse(px+w/2,py+42,w/2+8,6,0,0,6.3);ctx.fill();
+  RFG(px+10,py+20,8,18,3,"#6b4a2f","#4a2f1c");
+  RFG(px+52,py+20,8,18,3,"#6b4a2f","#4a2f1c");
+  RFG(px+6,py+24,58,14,2,"#8a5f3c","#5e3d22");
+  RF(px+31,py+26,8,10,2,"#2e2013");
+  ctx.fillStyle="#e8b84a";ctx.fillRect(px+6,py+24,58,2.5);
+  RFG(px-4,py+8,78,18,8,"#4a4f5e","#2c2f3a");
+  RFG(px+4,py+2,62,10,5,"#5a5f6e","#383b46");
+  FKHL(px+8,py+4,48,3);
+  RFG(px+26,py+38,18,8,2,"#a3763f","#7d5527");
+}
 function drawGround(camX,camY,t){
   const g=ctx.createLinearGradient(0,0,0,LH);
   g.addColorStop(0,'#3f7a3a');g.addColorStop(1,'#2c5c2a');
@@ -257,19 +312,47 @@ function drawGround(camX,camY,t){
     }else if(d.k==='g'){
       ctx.strokeStyle='#2f6b2c';ctx.lineWidth=2.4*d.s;ctx.lineCap='round';
       for(let b=-1;b<=1;b++){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+b*5*d.s+Math.sin(d.r)*4,y-9*d.s-Math.abs(b)*2);ctx.stroke();}
-    }else{
+    }else if(d.k==='t'){
       ELL(x,y+16*d.s,20*d.s,7*d.s,'rgba(0,0,0,.22)');
       ctx.fillStyle='#5a3d24';RR(x-5*d.s,y-6*d.s,10*d.s,24*d.s,4*d.s);ctx.fill();
       const tg=gradC(x,y-16*d.s,4,26*d.s,'#5fc46a','#2c7a33');
       ctx.fillStyle=tg;ctx.beginPath();ctx.arc(x,y-16*d.s,24*d.s,0,TAU);ctx.fill();
       HL(x-8*d.s,y-24*d.s,10*d.s,6*d.s);
+    }else if(d.k==='s'){
+      ELL(x,y+16*d.s,20*d.s,7*d.s,'rgba(0,0,0,.22)');
+      ctx.fillStyle='#5a3d24';RR(x-5*d.s,y-6*d.s,10*d.s,24*d.s,4*d.s);ctx.fill();
+      const sg=gradC(x,y-16*d.s,4,26*d.s,'#ffc2d9','#e86a9a');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(x,y-16*d.s,24*d.s,0,TAU);ctx.fill();
+      HL(x-8*d.s,y-24*d.s,10*d.s,6*d.s);
+      CIR(x-12*d.s,y-20*d.s,5*d.s,'#ffd9e8');CIR(x+10*d.s,y-10*d.s,4.5*d.s,'#ffd9e8');CIR(x+2*d.s,y-28*d.s,4*d.s,'#ffecf4');
+    }else if(d.k==='b'){
+      ELL(x,y+4,17*d.s,5*d.s,'rgba(0,0,0,.2)');
+      for(let bi=-2;bi<=2;bi++){
+        const bx=x+bi*7*d.s,bh=(30+((bi*37)%9))*d.s;
+        ctx.strokeStyle='#3f9e4d';ctx.lineWidth=4*d.s;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(bx,y+2);ctx.lineTo(bx+Math.sin(d.r+bi)*3,y+2-bh);ctx.stroke();
+        ctx.strokeStyle='#2c7a38';ctx.lineWidth=4.8*d.s;
+        for(let j=1;j<=3;j++){const jy=y+2-bh*j/3.4;ctx.beginPath();ctx.moveTo(bx-2.4*d.s,jy);ctx.lineTo(bx+2.4*d.s,jy);ctx.stroke();}
+        ctx.fillStyle='#57b765';
+        ctx.beginPath();ctx.ellipse(bx+6*d.s,y-bh+6,7*d.s,2.6*d.s,0.6,0,TAU);ctx.fill();
+        ctx.beginPath();ctx.ellipse(bx-6*d.s,y-bh+12,7*d.s,2.6*d.s,-0.6,0,TAU);ctx.fill();
+      }
+    }else if(d.k==='l'){
+      ELL(x,y+13*d.s,12*d.s,4*d.s,'rgba(0,0,0,.22)');
+      const lg2=gradC(x,y,2,15*d.s,'#b9c0cc','#7d8794');
+      ctx.fillStyle=lg2;RR(x-7*d.s,y-8*d.s,14*d.s,22*d.s,3*d.s);ctx.fill();
+      ctx.fillStyle=lg2;RR(x-11*d.s,y-14*d.s,22*d.s,8*d.s,3*d.s);ctx.fill();
+      ctx.fillStyle='#ffdf8a';RR(x-6*d.s,y-12.5*d.s,12*d.s,5*d.s,2*d.s);ctx.fill();
+      ctx.fillStyle=lg2;RR(x-13*d.s,y-23*d.s,26*d.s,9*d.s,4*d.s);ctx.fill();
+      CIR(x,y-25*d.s,2.6*d.s,'#7d8794');
+      HL(x-4*d.s,y-11*d.s,5*d.s,2.4*d.s);
     }
   }
 
   // fukuoka landmarks
   for(const L of LANDMARKS){
     const lx=L.x-camX, ly=L.y-camY;
-    if(lx<-220||lx>LW+220||ly<-220||ly<LH+220)continue;
+    if(lx<-220||lx>LW+220||ly<-220||ly>LH+220)continue;
     if(L.f==='station')drawStation(lx,ly);
     else if(L.f==='torii')drawTorii(lx,ly);
     else if(L.f==='shrine')drawShrine(lx,ly);
@@ -277,11 +360,14 @@ function drawGround(camX,camY,t){
     else if(L.f==='castle')drawCastle(lx,ly);
     else if(L.f==='retro')drawRetro(lx,ly);
     else if(L.f==='school')drawSchool(lx,ly);
+    else if(L.f==='tower')drawTower(lx,ly);
+    else if(L.f==='canal')drawCanal(lx,ly);
+    else if(L.f==='kushida')drawKushida(lx,ly);
     // name sign
     ctx.font='900 13px sans-serif';ctx.textAlign='center';
-    const tw=ctx.measureText(L.label).width;
+    const tw=ctx.measureText(LL(L)).width;
     ctx.fillStyle='rgba(10,14,28,.75)';RR(lx-tw/2-8,ly+58,tw+16,22,11);ctx.fill();
-    ctx.fillStyle='#ffe88f';ctx.fillText(L.label,lx,ly+73);
+    ctx.fillStyle='#ffe88f';ctx.fillText(LL(L),lx,ly+73);
   }
   // world border
   ctx.strokeStyle='rgba(60,30,10,.8)';ctx.lineWidth=14;ctx.setLineDash([26,14]);
@@ -396,6 +482,16 @@ function drawEnemy(e,camX,camY,t){
   }
   // slow tint
   if(e.slowT>0){ctx.fillStyle='rgba(120,200,255,.35)';ctx.beginPath();ctx.arc(0,-e.r*0.3,e.r*1.05,0,TAU);ctx.fill();}
+  // elite gold ring
+  if(e.elite){ctx.strokeStyle='rgba(255,217,61,.9)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,e.r+6+Math.sin(t/150)*2,0,TAU);ctx.stroke();}
+  // finalboss crown
+  if(e.type==='finalboss'){
+    ctx.fillStyle='#ffd93d';
+    const cw2=e.r*0.9,cy2=-e.r*0.95;
+    ctx.beginPath();ctx.moveTo(-cw2*0.5,cy2);ctx.lineTo(-cw2*0.5,cy2-16);ctx.lineTo(-cw2*0.25,cy2-6);
+    ctx.lineTo(0,cy2-20);ctx.lineTo(cw2*0.25,cy2-6);ctx.lineTo(cw2*0.5,cy2-16);ctx.lineTo(cw2*0.5,cy2);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#ff4757';CIR(0,cy2-10,3,'#ff4757');
+  }
   ctx.restore();
 }
 
@@ -412,7 +508,29 @@ function drawGem(g,camX,camY,t){
   if(g.tier===2){ctx.strokeStyle='rgba(199,125,255,'+(0.4+0.3*Math.sin(t/200))+')';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,s+5,0,TAU);ctx.stroke();}
 }
 
+let _mmc=null;
+function drawMinimap(){
+  if(!_mmc){const cv=$('minimap');if(!cv||!cv.getContext)return;_mmc=cv.getContext('2d');}
+  const M=_mmc,W=150,H=118,sx=W/WORLD_W,sy=H/WORLD_H;
+  M.clearRect(0,0,W,H);
+  M.fillStyle='rgba(8,12,24,.78)';M.fillRect(0,0,W,H);
+  for(const L of LANDMARKS){
+    M.fillStyle='#ffd93d';
+    M.beginPath();M.arc(L.x*sx,L.y*sy,3,0,TAU);M.fill();
+  }
+  for(const e of enemies){
+    const r=e.type==='finalboss'?5:e.type==='boss'?4:2;
+    M.fillStyle=e.type==='finalboss'?'#c77dff':'rgba(255,80,80,.85)';
+    M.fillRect(e.x*sx-r/2,e.y*sy-r/2,r,r);
+  }
+  M.strokeStyle='rgba(255,255,255,.45)';M.lineWidth=1;
+  M.strokeRect(camX*sx,camY*sy,LW*sx,LH*sy);
+  const pr=4+Math.sin(performance.now()/220)*1.3;
+  M.fillStyle='#ffe88f';M.beginPath();M.arc(player.x*sx,player.y*sy,pr,0,TAU);M.fill();
+  M.strokeStyle='#fff';M.lineWidth=1.5;M.stroke();
+}
 function drawPickup(p,camX,camY,t){
+  if(p.life<5&&Math.floor(t/180)%2===0)return;
   const x=p.x-camX,y=p.y-camY+Math.sin(t/280)*3;
   ELL(x,y+10,12,4,'rgba(0,0,0,.25)');
   if(p.kind==='corn'){
@@ -546,19 +664,77 @@ function drawBullet(b,camX,camY){
   ctx.restore();
 }
 
+/* ================= 언어 (ko/ja) ================= */
+let LANG='ko';
+try{LANG=localStorage.getItem('fukuoka_lang')||'ko';}catch(e){}
+if(LANG!=='ja')LANG='ko';
+const STR={
+ko:{title:'후쿠오카 서바이벌',subtitle:'좀비 비둘기 무리가 몰려온다!<br>후더덕과 함께 후쿠오카 여행에서 살아남아라 🦆🍜',
+howto:'🕹️ <b>이동:</b> WASD / 방향키 / 화면 왼쪽 드래그(조이스틱)<br>🍜 <b>공격:</b> 자동! 후쿠오카 명물 무기 6종으로 싸워요<br>💎 <b>성장:</b> 기념품 젬을 모아 레벨업 → 3장 중 1장 선택<br>👹 <b>보스:</b> 90초마다 비둘기왕 출현!<br>🍜 <b>아이템:</b> 라멘(체력 회복), 자석(젬 흡수)<br>🗺️ <b>여행지:</b> 하카타역→다자이후→나카스→고쿠라성→모지코',
+start:'게임 시작',best:'🏆 최고 기록: ',levelup:'⬆️ 레벨 업! 업그레이드 선택',levelup_sub:'3장 중 하나를 골라줘',stat_up:'스탯 강화',
+paused:'⏸ 일시정지',resting:'잠시 쉬는 중...',resume:'계속하기',quit:'그만하기',gameover:'💀 게임 오버',
+over1:'좀비 비둘기들에게 여행을 방해받았어요...',over2:'꽥! 다음엔 하카타역부터 다시!',over3:'후더덕의 후쿠오카 여행은 계속된다!',
+st_time:'생존 시간',st_level:'레벨',st_kill:'처치',again:'다시 도전',new_record:'🎉 신기록 달성!',
+wave:'🦆 후쿠오카에서 살아남아라!',wave_n:'웨이브! 좀비 비둘기 무리가 몰려온다!',
+boss_spawn:'👹 비둘기왕 출현!',boss_kill:'🎉 보스 처치!',magnet:'🧲 자석 발동!',fullscreen:'전체화면',
+castle_mode:'🏯 고쿠라성 방어 모드! 10초간 성이 공격한다!',train_ride:'🚄 신칸센 탑승! 모지코 방면으로 출발!',
+final_spawn:'👑 끝판왕 비둘기 황제 출현!',victory:'🎉 클리어!',victory_msg:'끝판왕을 물리쳤다! 후쿠오카 여행 완주!',
+elite_spawn:'✨ 엘리트 출현!'},
+ja:{title:'福岡サバイバル',subtitle:'ゾンビ鳩の群れがやってくる!<br>フードックと一緒に福岡旅行を生き残れ 🦆🍜',
+howto:'🕹️ <b>移動:</b> WASD / 矢印キー / 画面左ドラッグ(ジョイスティック)<br>🍜 <b>攻撃:</b> 自動! 福岡名物武器6種で戦おう<br>💎 <b>成長:</b> お土産ジェムを集めてレベルアップ → 3枚から1枚選択<br>👹 <b>ボス:</b> 90秒ごとに鳩王出現!<br>🍜 <b>アイテム:</b> ラーメン(体力回復)、磁石(ジェム吸収)<br>🗺️ <b>旅行地:</b> 博多駅→太宰府→中洲→小倉城→門司港',
+start:'ゲームスタート',best:'🏆 最高記録: ',levelup:'⬆️ レベルアップ! 選択',levelup_sub:'3枚から1枚選んでね',stat_up:'ステータス強化',
+paused:'⏸ 一時停止',resting:'休憩中...',resume:'つづける',quit:'やめる',gameover:'💀 ゲームオーバー',
+over1:'ゾンビ鳩に旅行を邪魔されちゃった...',over2:'ガー! 次は博多駅からリベンジ!',over3:'フードックの福岡旅行は続く!',
+st_time:'生存時間',st_level:'レベル',st_kill:'撃破',again:'もう一度',new_record:'🎉 新記録達成!',
+wave:'🦆 福岡で生き残れ!',wave_n:'ウェーブ! ゾンビ鳩の群れが来る!',
+boss_spawn:'👹 鳩王出現!',boss_kill:'🎉 ボス撃破!',magnet:'🧲 磁石発動!',fullscreen:'全画面',
+castle_mode:'🏯 小倉城防衛モード! 10秒間城が攻撃!',train_ride:'🚄 新幹線乗車! 門司港方面へ出発!',
+final_spawn:'👑 最終ボス 鳩皇帝出現!',victory:'🎉 クリア!',victory_msg:'最終ボスを倒した! 福岡旅行完走!',
+elite_spawn:'✨ エリート出現!'}
+};
+function T(k){return (STR[LANG]&&STR[LANG][k])||STR.ko[k]||k;}
+function LN(o){return LANG==='ja'?(o.nja||o.name):o.name;}
+function LD(o){return LANG==='ja'?(o.dja||o.desc):o.desc;}
+function LL(l){return LANG==='ja'?(l.lja||l.label):l.label;}
+function setLang(l){LANG=(l==='ja')?'ja':'ko';try{localStorage.setItem('fukuoka_lang',LANG);}catch(e){}applyLang();}
+function applyLang(){
+  document.title=T('title');
+  try{document.documentElement.lang=LANG==='ja'?'ja':'ko';}catch(e){}
+  $('t-title').textContent=T('title');
+  $('t-sub').innerHTML=T('subtitle');
+  $('t-howto').innerHTML=T('howto');
+  $('btn-start').textContent=T('start');
+  $('t-lvtitle').textContent=T('levelup');
+  $('t-lvsub').textContent=T('levelup_sub');
+  $('t-overtitle').textContent=T('gameover');
+  $('t-st-time').textContent=T('st_time');
+  $('t-st-lv').textContent=T('st_level');
+  $('t-st-kill').textContent=T('st_kill');
+  $('btn-again').textContent=T('again');
+  $('t-pausetitle').textContent=T('paused');
+  $('t-pausesub').textContent=T('resting');
+  $('btn-resume').textContent=T('resume');
+  $('btn-quit').textContent=T('quit');
+  $('btn-fs').title=T('fullscreen');
+  $('lang-ko').classList.toggle('on',LANG==='ko');
+  $('lang-ja').classList.toggle('on',LANG==='ja');
+  try{const b=localStorage.getItem('fukuoka_best');$('best-line').textContent=b?(T('best')+fmtT(+b)):'';}catch(e){}
+}
 /* ================= 게임 상태 ================= */
 let state='title';
 let player,enemies,bullets,gems,pickups,parts,dnums,mets,ltns;
 let camX=0,camY=0,shake=0,gameT=0,kills=0,spawnT=0,bossN=0,waveN=0;
+let castleT=0,castleCd=0,castleFireT=0,trainT=-1,trainCd=0,eliteT=25,finalSpawned=false;
+const cshots=[];
 let magnetAll=0;
 
 const WEAPONS={
-  quack:  {name:'하카타 라멘포',icon:'🍜',max:5,desc:'라멘 면발 자동 사격'},
-  meteor: {name:'멘타이코 스트라이크',icon:'🌶️',max:5,desc:'매콤 멘타이코 폭탄 낙하'},
-  lightning:{name:'신칸센 스파크',icon:'🚄',max:5,desc:'전차 스파크가 적 사이를 튐'},
-  orbit:  {name:'궤도 우메가에모찌',icon:'🍡',max:5,desc:'다자이후 명물이 빙글빙글'},
-  frost:  {name:'카키고오리',icon:'🍧',max:5,desc:'빙수 폭발로 동결 + 감속'},
-  laser:  {name:'텐만구 레이저',icon:'⛩️',max:5,desc:'학문신의 가호 레이저'},
+  quack:  {name:'하카타 라멘포',icon:'🍜',max:5,desc:'라멘 면발 자동 사격',nja:'博多ラーメン砲',dja:'ラーメンの麺を自動射撃'},
+  meteor: {name:'멘타이코 스트라이크',icon:'🌶️',max:5,desc:'매콤 멘타이코 폭탄 낙하',nja:'明太子ストライク',dja:'辛い明太子爆弾が落下'},
+  lightning:{name:'신칸센 스파크',icon:'🚄',max:5,desc:'전차 스파크가 적 사이를 튐',nja:'新幹線スパーク',dja:'電車のスパークが敵の間を飛ぶ'},
+  orbit:  {name:'궤도 우메가에모찌',icon:'🍡',max:5,desc:'다자이후 명물이 빙글빙글',nja:'軌道うめがえもち',dja:'太宰府名物がぐるぐる'},
+  frost:  {name:'카키고오리',icon:'🍧',max:5,desc:'빙수 폭발로 동결 + 감속',nja:'かき氷',dja:'かき氷爆発で凍結+減速'},
+  laser:  {name:'텐만구 레이저',icon:'⛩️',max:5,desc:'학문신의 가호 레이저',nja:'天満宮レーザー',dja:'学問の神様の加護レーザー'},
 };
 function wstats(id,lv){
   switch(id){
@@ -571,12 +747,12 @@ function wstats(id,lv){
   }
 }
 const STATS={
-  dmg:{name:'공격력 +20%',icon:'💪',desc:'모든 무기 데미지 증가'},
-  speed:{name:'이동속도 +12%',icon:'👟',desc:'더 빠르게 회피'},
-  magnet:{name:'자석 범위 +45%',icon:'🧲',desc:'젬을 멀리서 흡수'},
-  maxhp:{name:'최대체력 +25',icon:'❤️',desc:'즉시 25 회복'},
-  regen:{name:'재생 +0.8/s',icon:'💚',desc:'초당 체력 자동 회복'},
-  haste:{name:'쿨다운 -8%',icon:'⏱️',desc:'모든 무기 쿨타임 감소'},
+  dmg:{name:'공격력 +20%',icon:'💪',desc:'모든 무기 데미지 증가',nja:'攻撃力 +20%',dja:'全武器のダメージ増加'},
+  speed:{name:'이동속도 +12%',icon:'👟',desc:'더 빠르게 회피',nja:'移動速度 +12%',dja:'素早く回避'},
+  magnet:{name:'자석 범위 +45%',icon:'🧲',desc:'젬을 멀리서 흡수',nja:'磁石範囲 +45%',dja:'ジェムを遠くから吸収'},
+  maxhp:{name:'최대체력 +25',icon:'❤️',desc:'즉시 25 회복',nja:'最大体力 +25',dja:'即座に25回復'},
+  regen:{name:'재생 +0.8/s',icon:'💚',desc:'초당 체력 자동 회복',nja:'再生 +0.8/s',dja:'毎秒体力自動回復'},
+  haste:{name:'쿨다운 -8%',icon:'⏱️',desc:'모든 무기 쿨타임 감소',nja:'クールダウン -8%',dja:'全武器のクールタイム減少'},
 };
 
 function resetGame(){
@@ -585,6 +761,7 @@ function resetGame(){
     fireT:0,metT:2,zapT:1,frostT:3,orbitA:0};
   enemies=[];bullets=[];gems=[];pickups=[];parts=[];dnums=[];mets=[];ltns=[];
   camX=player.x-LW/2;camY=player.y-LH/2;shake=0;gameT=0;kills=0;spawnT=0;bossN=0;waveN=0;magnetAll=0;pendingLv=0;
+  castleT=0;castleCd=0;trainT=-1;trainCd=0;eliteT=25;finalSpawned=false;cshots.length=0;
   for(let i=0;i<7;i++){const a=i/7*TAU+rnd(-0.3,0.3),d=rnd(420,560);
     const bx=clamp(player.x+Math.cos(a)*d,30,WORLD_W-30),by=clamp(player.y+Math.sin(a)*d,30,WORLD_H-30);
     const b=ETYPES[i%3===0?'duck':'chick'];
@@ -598,6 +775,7 @@ const ETYPES={
   duck:{r:15,hp:32,spd:72,dmg:10,xp:3,col:'#e8ecf0',colD:'#a8b0b8'},
   jumbo:{r:24,hp:130,spd:46,dmg:18,xp:8,col:'#4a4f57',colD:'#23262b'},
   boss:{r:42,hp:1600,spd:42,dmg:30,xp:60,col:'#8a94a6',colD:'#525a68'},
+  finalboss:{r:58,hp:22000,spd:40,dmg:45,xp:400,col:'#3a2b5c',colD:'#1d1530'},
 };
 function spawnEnemy(forceType){
   if(enemies.length>160)return;
@@ -626,7 +804,7 @@ function spawnBoss(){
   const b=ETYPES.boss,scale=(1+gameT/60*0.32)*(1+bossN*0.35);
   enemies.push({x,y,r:b.r,hp:b.hp*scale,maxhp:b.hp*scale,spd:b.spd,dmg:b.dmg,type:'boss',
     col:b.col,colD:b.colD,seed:rnd(0,TAU),hitCd:0,hurtT:0,slowT:0,orbHit:0});
-  waveBanner('👹 비둘기왕 출현!');
+  waveBanner(T('boss_spawn'));
   sBoss();shake=Math.max(shake,10);
 }
 
@@ -658,10 +836,20 @@ function killEnemy(e){
   if(e.type==='boss'){
     shake=Math.max(shake,14);sBoom();
     boomParts(e.x,e.y,'#ffb020',40);
-    pickups.push({x:e.x-24,y:e.y,kind:'corn',seed:rnd(0,TAU)});
-    pickups.push({x:e.x+24,y:e.y,kind:'magnet',seed:rnd(0,TAU)});
-    waveBanner('🎉 보스 처치!');
+    pickups.push({x:e.x-24,y:e.y,kind:'corn',seed:rnd(0,TAU),life:25});
+    pickups.push({x:e.x+24,y:e.y,kind:'magnet',seed:rnd(0,TAU),life:25});
+    waveBanner(T('boss_kill'));
   }
+  if(e.elite){
+    for(let gi=0;gi<3;gi++){
+      const a=rnd(0,TAU);
+      gems.push({x:e.x+Math.cos(a)*rnd(4,24),y:e.y+Math.sin(a)*rnd(4,24),
+        vx:Math.cos(a)*rnd(40,120),vy:Math.sin(a)*rnd(40,120),val:5,tier:1,seed:rnd(0,TAU)});
+    }
+    pickups.push({x:e.x,y:e.y-24,kind:Math.random()<0.5?'corn':'magnet',seed:rnd(0,TAU),life:25});
+    boomParts(e.x,e.y,'#ffd93d',20);
+  }
+  if(e.type==='finalboss'){gameClear();return;}
 }
 function boomParts(x,y,col,n){
   for(let i=0;i<n;i++){
@@ -812,12 +1000,12 @@ function openLevelUp(){
     const d=document.createElement('div');d.className='lvcard';
     if(c.kind==='w'){
       const w=WEAPONS[c.id];
-      d.innerHTML='<div class="ic">'+w.icon+'</div><div class="nm">'+w.name+'</div><div class="ds">'+w.desc+'</div>'+
+      d.innerHTML='<div class="ic">'+w.icon+'</div><div class="nm">'+LN(w)+'</div><div class="ds">'+LD(w)+'</div>'+
         (c.lv===0?'<span class="nw">NEW!</span>':'<span class="up">Lv '+c.lv+' → '+(c.lv+1)+'</span>');
       d.onclick=()=>{player.weapons[c.id]=(player.weapons[c.id]||0)+1;closeLevelUp();};
     }else{
       const s=STATS[c.id];
-      d.innerHTML='<div class="ic">'+s.icon+'</div><div class="nm">'+s.name+'</div><div class="ds">'+s.desc+'</div><span class="up">스탯 강화</span>';
+      d.innerHTML='<div class="ic">'+s.icon+'</div><div class="nm">'+LN(s)+'</div><div class="ds">'+LD(s)+'</div><span class="up">'+T('stat_up')+'</span>';
       d.onclick=()=>{applyStat(c.id);closeLevelUp();};
     }
     box.appendChild(d);
@@ -872,8 +1060,10 @@ function update(dt,t){
   // move
   const mv=moveInput();
   p.moving=mv.mag>0.1;
-  p.x=clamp(p.x+mv.x*p.speed*mv.mag*dt,20,WORLD_W-20);
-  p.y=clamp(p.y+mv.y*p.speed*mv.mag*dt,20,WORLD_H-20);
+  if(trainT<0){
+    p.x=clamp(p.x+mv.x*p.speed*mv.mag*dt,20,WORLD_W-20);
+    p.y=clamp(p.y+mv.y*p.speed*mv.mag*dt,20,WORLD_H-20);
+  }
   if(p.regen>0)p.hp=Math.min(p.maxhp,p.hp+p.regen*dt);
   if(p.hurtT>0)p.hurtT-=dt;
   updWeapons(dt);
@@ -888,12 +1078,83 @@ function update(dt,t){
   }
   // boss timer
   if(gameT>=(bossN+1)*90&&bossN<99){spawnBoss();}
+  // kokura castle defense mode
+  const CX=540,CY=1500;
+  if(castleCd>0)castleCd-=dt;
+  if(castleT>0){
+    castleT-=dt;castleFireT-=dt;
+    if(castleFireT<=0){
+      castleFireT=0.5;
+      const tgt=nearestEnemy(CX,CY,700);
+      if(tgt){
+        const a=Math.atan2(tgt.y-CY,tgt.x-CX);
+        cshots.push({x:CX,y:CY-40,vx:Math.cos(a)*520,vy:Math.sin(a)*520,dmg:45+gameT*0.15,life:1.6});
+        boomParts(CX,CY-40,'#ffb020',6);
+      }
+    }
+  }else if(castleCd<=0){
+    const cdx=p.x-CX,cdy=p.y-CY;
+    if(cdx*cdx+cdy*cdy<110*110){castleT=10;castleCd=50;castleFireT=0;waveBanner(T('castle_mode'));sBoom();}
+  }
+  for(let i=cshots.length-1;i>=0;i--){
+    const cs=cshots[i];cs.life-=dt;cs.x+=cs.vx*dt;cs.y+=cs.vy*dt;
+    let chit=false;
+    for(const e of enemies){
+      const dx=e.x-cs.x,dy=e.y-cs.y;
+      if(dx*dx+dy*dy<(e.r+10)*(e.r+10)){damageEnemy(e,cs.dmg,cs.vx*0.02,cs.vy*0.02);chit=true;break;}
+    }
+    if(chit||cs.life<=0){if(chit)boomParts(cs.x,cs.y,'#ffb020',8);cshots.splice(i,1);}
+  }
+  // shinkansen ride: hakata -> mojiko
+  if(trainCd>0)trainCd-=dt;
+  if(trainT>=0){
+    trainT+=dt/7;
+    const tt=Math.min(1,trainT);
+    p.x=420+(2130-420)*tt;p.y=260+(1660-260)*tt;
+    p.hurtT=Math.max(p.hurtT,0.1);
+    if(trainT>=1){trainT=-1;trainCd=60;}
+  }else if(trainCd<=0){
+    const tdx=p.x-420,tdy=p.y-260;
+    if(tdx*tdx+tdy*tdy<110*110){trainT=0;waveBanner(T('train_ride'));sBoom();}
+  }
+  // elite enemies
+  eliteT-=dt;
+  if(eliteT<=0){
+    eliteT=50;
+    const etp=['chick','duck','jumbo'][irnd(0,2)],eb=ETYPES[etp];
+    const ea=rnd(0,TAU),ed=rnd(500,700);
+    enemies.push({x:clamp(p.x+Math.cos(ea)*ed,40,WORLD_W-40),y:clamp(p.y+Math.sin(ea)*ed,40,WORLD_H-40),
+      r:eb.r*1.5,hp:eb.hp*4*(1+gameT/180),maxhp:eb.hp*4*(1+gameT/180),spd:eb.spd*1.1,dmg:Math.ceil(eb.dmg*1.5),
+      type:etp,elite:true,col:eb.col,colD:eb.colD,seed:rnd(0,TAU),hitCd:0,hurtT:0,slowT:0,orbHit:0});
+    waveBanner(T('elite_spawn'));
+  }
+  // final boss at 10min
+  if(!finalSpawned&&gameT>=600){
+    finalSpawned=true;
+    const fa=rnd(0,TAU),fb=ETYPES.finalboss;
+    enemies.push({x:clamp(p.x+Math.cos(fa)*700,80,WORLD_W-80),y:clamp(p.y+Math.sin(fa)*700,80,WORLD_H-80),
+      r:fb.r,hp:fb.hp,maxhp:fb.hp,spd:fb.spd,dmg:fb.dmg,type:'finalboss',col:fb.col,colD:fb.colD,
+      seed:rnd(0,TAU),hitCd:0,hurtT:0,slowT:0,orbHit:0,minionT:3});
+    waveBanner(T('final_spawn'));sBoss();shake=Math.max(shake,16);
+  }
   // wave banner each 60s
   const wv=Math.floor(gameT/60);
-  if(wv>waveN){waveN=wv;waveBanner('🌊 '+wv+'웨이브! 좀비 비둘기 무리가 몰려온다!');}
+  if(wv>waveN){waveN=wv;waveBanner('🌊 '+wv+T('wave_n'));}
 
   // enemies
   for(let i=enemies.length-1;i>=0;i--){
+    const fe=enemies[i];
+    if(fe.type==='finalboss'&&fe.hp>0){
+      fe.minionT-=dt;
+      if(fe.minionT<=0){
+        fe.minionT=4;
+        for(let k=0;k<3;k++){
+          const ma=rnd(0,TAU),mh=12*(1+gameT/120);
+          enemies.push({x:clamp(fe.x+Math.cos(ma)*80,30,WORLD_W-30),y:clamp(fe.y+Math.sin(ma)*80,30,WORLD_H-30),
+            r:10,hp:mh,maxhp:mh,spd:110,dmg:8,type:'chick',col:'#9aa5b1',colD:'#5f6b78',seed:rnd(0,TAU),hitCd:0,hurtT:0,slowT:0,orbHit:0});
+        }
+      }
+    }
     const e=enemies[i];
     if(e.hp<=0){enemies.splice(i,1);continue;}
     if(e.hurtT>0)e.hurtT-=dt;
@@ -958,17 +1219,19 @@ function update(dt,t){
   // pickups
   for(let i=pickups.length-1;i>=0;i--){
     const pk=pickups[i];
+    pk.life-=dt;
+    if(pk.life<=0){pickups.splice(i,1);continue;}
     if(dist2(pk.x,pk.y,p.x,p.y)<30*30){
       pickups.splice(i,1);sPick();
       if(pk.kind==='corn'){p.hp=Math.min(p.maxhp,p.hp+30);dnums.push({x:p.x,y:p.y-30,txt:'+30',t:0.8,col:'#7dff8a'});}
-      else{magnetAll=3;waveBanner('🧲 자석 발동!');}
+      else{magnetAll=3;waveBanner(T('magnet'));}
       boomParts(p.x,p.y,'#7dff8a',10);
     }
   }
   // occasional pickups
   if(Math.random()<dt*0.03){
     pickups.push({x:clamp(p.x+rnd(-400,400),40,WORLD_W-40),y:clamp(p.y+rnd(-300,300),40,WORLD_H-40),
-      kind:Math.random()<0.6?'corn':'magnet',seed:rnd(0,TAU)});
+      kind:Math.random()<0.6?'corn':'magnet',seed:rnd(0,TAU),life:25});
   }
   // particles
   for(let i=parts.length-1;i>=0;i--){
@@ -1073,8 +1336,39 @@ function render(t){
     ctx.strokeText(d.txt,x,y);ctx.fillStyle=d.col;ctx.fillText(d.txt,x,y);
     ctx.globalAlpha=1;
   }
+  // castle cannon shots
+  for(const s of cshots){
+    const x=s.x-camX,y=s.y-camY;
+    const fg=ctx.createRadialGradient(x,y,1,x,y,13);
+    fg.addColorStop(0,'#fff3b0');fg.addColorStop(0.5,'#ffb020');fg.addColorStop(1,'rgba(255,80,0,0)');
+    ctx.fillStyle=fg;ctx.beginPath();ctx.arc(x,y,13,0,TAU);ctx.fill();
+    CIR(x,y,5,'#5a3d24');
+  }
+  // castle defense ring
+  if(castleT>0){
+    const cx=540-camX,cy=1500-camY;
+    ctx.strokeStyle='rgba(255,176,32,.85)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(cx,cy,95+Math.sin(performance.now()/150)*7,0,TAU);ctx.stroke();
+    ctx.font='900 15px sans-serif';ctx.textAlign='center';
+    ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.6)';ctx.strokeText(Math.ceil(castleT)+'s',cx,cy-108);
+    ctx.fillStyle='#ffb020';ctx.fillText(Math.ceil(castleT)+'s',cx,cy-108);
+  }
+  // shinkansen under player
+  if(trainT>=0&&state==='play'){
+    const x=player.x-camX,y=player.y-camY;
+    ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x,y+17,46,10,0,0,TAU);ctx.fill();
+    const tg2=ctx.createLinearGradient(0,y-15,0,y+15);
+    tg2.addColorStop(0,'#ffffff');tg2.addColorStop(0.6,'#d7e6f5');tg2.addColorStop(1,'#9fb6cc');
+    ctx.fillStyle=tg2;RR(x-46,y-15,92,30,11);ctx.fill();
+    ctx.fillStyle='#2d7fe0';ctx.fillRect(x-46,y-2,92,5);
+    ctx.fillStyle='#1a2b4a';
+    for(let wi=0;wi<4;wi++)ctx.fillRect(x-38+wi*20,y-11,14,8);
+    ctx.fillStyle=tg2;ctx.beginPath();ctx.moveTo(x+46,y-15);ctx.lineTo(x+64,y);ctx.lineTo(x+46,y+15);ctx.closePath();ctx.fill();
+    HL(x-20,y-8,16,5);
+  }
   // frost nova telegraph handled in parts
   ctx.restore();
+  drawMinimap();
   titleVignette();
 }
 function titleVignette(){
@@ -1092,14 +1386,14 @@ function showTitle(){
   $('ov-pause').classList.add('hidden');
   $('title-img').src=TITLE_ART;
   const best=localStorage.getItem('fukuoka_best');
-  $('best-line').textContent=best?('🏆 최고 기록: '+fmtT(+best)):'';
+  $('best-line').textContent=best?(T('best')+fmtT(+best)):'';
 }
 function startGame(){
   resetGame();
   $('ov-title').classList.add('hidden');
   $('ov-over').classList.add('hidden');
   state='play';
-  waveBanner('🦆 후쿠오카에서 살아남아라!');
+  waveBanner(T('wave'));
   beep(440,0.15,'square',0.05,880);
 }
 function gameOver(){
@@ -1108,13 +1402,28 @@ function gameOver(){
     $('st-time').textContent=fmtT(gameT);
     $('st-lv').textContent=player.level;
     $('st-kill').textContent=kills;
-    const msgs=['좀비 비둘기들에게 여행을 방해받았어요...','꽥! 다음엔 하카타역부터 다시!','후더덕의 후쿠오카 여행은 계속된다!'];
+    const msgs=[T('over1'),T('over2'),T('over3')];
     $('over-msg').textContent=msgs[irnd(0,msgs.length-1)];
     const best=+(localStorage.getItem('fukuoka_best')||0);
-    if(gameT>best){localStorage.setItem('fukuoka_best',Math.floor(gameT));$('best-line2').textContent='🎉 신기록 달성!';}
-    else $('best-line2').textContent='🏆 최고 기록: '+fmtT(best);
+    if(gameT>best){localStorage.setItem('fukuoka_best',Math.floor(gameT));$('best-line2').textContent=T('new_record');}
+    else $('best-line2').textContent=T('best')+fmtT(best);
     $('ov-over').classList.remove('hidden');
   },900);
+}
+function gameClear(){
+  state='clear';sBoom();shake=Math.max(shake,18);
+  boomParts(player.x,player.y,'#ffd93d',60);
+  setTimeout(()=>{
+    $('st-time').textContent=fmtT(gameT);
+    $('st-lv').textContent=player.level;
+    $('st-kill').textContent=kills;
+    $('t-overtitle').textContent=T('victory');
+    $('over-msg').textContent=T('victory_msg');
+    const best=+(localStorage.getItem('fukuoka_best')||0);
+    if(gameT>best){localStorage.setItem('fukuoka_best',Math.floor(gameT));$('best-line2').textContent=T('new_record');}
+    else $('best-line2').textContent=T('best')+fmtT(best);
+    $('ov-over').classList.remove('hidden');
+  },1200);
 }
 function togglePause(){
   if(state==='play'){state='pause';$('ov-pause').classList.remove('hidden');}
@@ -1123,6 +1432,18 @@ function togglePause(){
 $('btn-start').onclick=()=>{beep(520,0.1,'square',0.05);startGame();};
 $('btn-again').onclick=()=>{startGame();};
 $('btn-pause').onclick=()=>togglePause();
+$('btn-fs').onclick=()=>toggleFS();
+function toggleFS(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().then(()=>{
+      try{if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(()=>{});}catch(e){}
+    }).catch(()=>{});
+  }else document.exitFullscreen();
+}
+document.addEventListener('fullscreenchange',()=>{fitCanvas();});
+$('lang-ko').onclick=()=>{setLang('ko');};
+$('lang-ja').onclick=()=>{setLang('ja');};
+applyLang();
 $('btn-resume').onclick=()=>togglePause();
 $('btn-quit').onclick=()=>{$('ov-pause').classList.add('hidden');showTitle();};
 
