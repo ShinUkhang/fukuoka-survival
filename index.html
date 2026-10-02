@@ -573,6 +573,28 @@ function drawPickup(p,camX,camY,t){
     ctx.fillText('💣',x,y+4);
     return;
   }
+  if(p.kind==='giant'){
+    ELL(x,y+10,12,4,'rgba(0,0,0,.25)');
+    ctx.fillStyle='#fff5e0';RR(x-4,y-2,8,12,3);ctx.fill();
+    ctx.fillStyle=gradC(x,y-8,2,14,'#ff6b6b','#c92a2a');
+    ctx.beginPath();ctx.arc(x,y-4,13,Math.PI,0);ctx.fill();
+    ctx.fillRect(x-13,y-4,26,3);
+    CIR(x-6,y-9,2.5,'#fff');CIR(x+5,y-11,2,'#fff');CIR(x,y-14,1.8,'#fff');
+    return;
+  }
+  if(p.kind==='wing'){
+    ELL(x,y+10,12,4,'rgba(0,0,0,.25)');
+    ctx.fillStyle=gradC(x,y,2,14,'#ffffff','#bfe0f5');
+    ctx.beginPath();
+    ctx.moveTo(x-12,y+4);
+    ctx.quadraticCurveTo(x-14,y-10,x-2,y-8);
+    ctx.quadraticCurveTo(x+8,y-12,x+12,y-2);
+    ctx.quadraticCurveTo(x+4,y+6,x-12,y+4);
+    ctx.fill();
+    ctx.strokeStyle='#7fb8dd';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(x-8,y);ctx.quadraticCurveTo(x,y-4,x+8,y+2);ctx.stroke();
+    return;
+  }
   ELL(x,y+10,12,4,'rgba(0,0,0,.25)');
   if(p.kind==='corn'){
     // ramen bowl
@@ -725,6 +747,7 @@ bene_torii:'⛩️ 바람처럼! 이동속도 UP (10초)',bene_shrine:'📚 합�
 bene_yatai:'🍜 든든한 한 끼! 체력 풀회복',bene_retro:'🚂 추억 여행! 젬 전부 흡수',
 bene_school:'📣 응원! 공격력 UP (15초)',bene_tower:'🗼 전망대! 쿨다운 감소 (20초)',
 bene_canal:'🎡 쇼핑! 무기 강화',bene_kushida:'⛩️ 야마카사! 무적 (8초)',
+bene_giant:'🍄 파워 모찌! 거대 오리 변신! (12초)',bene_fly:'🪽 하늘을 날다! 무적 비행! (10초)',
 mode_ta:'🏆 타임어택 (1분)',mode_sv:'🦆 서바이벌',
 sc_title:'🏆 타임어택 결과',sc_score:'점수',sc_name_ph:'이름 입력 (12자)',
 sc_save:'📸 이미지 저장',sc_again:'다시 도전',sc_board:'🏆 명예의 전당',
@@ -744,6 +767,7 @@ bene_torii:'⛩️ 風のように! 移動速度UP (10秒)',bene_shrine:'📚 �
 bene_yatai:'🍜 しっかりご飯! 体力全回復',bene_retro:'🚂 思い出旅行! ジェム全部吸収',
 bene_school:'📣 応援! 攻撃力UP (15秒)',bene_tower:'🗼 展望台! クールダウン減少 (20秒)',
 bene_canal:'🎡 ショッピング! 武器強化',bene_kushida:'⛩️ 山笠! 無敵 (8秒)',
+bene_giant:'🍄 パワー餅! 巨大アヒル変身! (12秒)',bene_fly:'🪽 空を飛ぶ! 無敵飛行! (10秒)',
 mode_ta:'🏆 タイムアタック (1分)',mode_sv:'🦆 サバイバル',
 sc_title:'🏆 タイムアタック結果',sc_score:'スコア',sc_name_ph:'名前入力 (12字)',
 sc_save:'📸 画像保存',sc_again:'もう一度',sc_board:'🏆 殿堂入り',
@@ -1141,6 +1165,19 @@ function update(dt,t){
   if(p._hstT>0){p._hstT-=dt;if(p._hstT<=0)p.hasteMul/=0.7;}
   if(p._xpT>0)p._xpT-=dt;
   if(p._invT>0)p._invT-=dt;
+  if(p._giantT>0){
+    p._giantT-=dt;
+    if(p._giantT<=0)p.dmgMul/=2;
+    else{for(const e of enemies){
+      const dx=e.x-p.x,dy=e.y-p.y,rr=e.r+30;
+      if(dx*dx+dy*dy<rr*rr)damageEnemy(e,90*dt,dx*0.08,dy*0.08);
+    }}
+  }
+  if(p._flyT>0){
+    p._flyT-=dt;
+    if(p._flyT<=0)p.speed/=1.3;
+    else p.hurtT=Math.max(p.hurtT,0.1);
+  }
   // time attack countdown
   if(gameMode==='timeattack'){
     timeLeft-=dt;
@@ -1320,6 +1357,16 @@ function update(dt,t){
         }
         dnums.push({x:p.x,y:p.y-40,txt:'BOOM!',t:1,col:'#ffb020'});
       }
+      else if(pk.kind==='giant'){
+        if(!p._giantT)p.dmgMul*=2;
+        p._giantT=12;waveBanner(T('bene_giant'));sPick();
+        boomParts(p.x,p.y,'#ffd93d',20);shake=Math.max(shake,6);
+      }
+      else if(pk.kind==='wing'){
+        if(!p._flyT)p.speed*=1.3;
+        p._flyT=10;waveBanner(T('bene_fly'));sPick();
+        boomParts(p.x,p.y,'#bfe8ff',20);
+      }
       else if(pk.kind==='corn'){p.hp=Math.min(p.maxhp,p.hp+30);dnums.push({x:p.x,y:p.y-30,txt:'+30',t:0.8,col:'#7dff8a'});}
       else{magnetAll=3;waveBanner(T('magnet'));}
       boomParts(p.x,p.y,'#7dff8a',10);
@@ -1334,6 +1381,11 @@ function update(dt,t){
   if(Math.random()<dt*0.012){
     pickups.push({x:clamp(p.x+rnd(-450,450),40,WORLD_W-40),y:clamp(p.y+rnd(-350,350),40,WORLD_H-40),
       kind:'bomb',seed:rnd(0,TAU),life:25});
+  }
+  // power-ups: giant mushroom & wing
+  if(Math.random()<dt*0.008){
+    pickups.push({x:clamp(p.x+rnd(-450,450),40,WORLD_W-40),y:clamp(p.y+rnd(-350,350),40,WORLD_H-40),
+      kind:Math.random()<0.5?'giant':'wing',seed:rnd(0,TAU),life:25});
   }
   // particles
   for(let i=parts.length-1;i>=0;i--){
@@ -1382,7 +1434,26 @@ function render(t){
     const x=a.e.x-camX,y=a.e.y-camY;
     if(x>-80&&x<LW+80&&y>-80&&y<LH+80)drawEnemy(a.e,camX,camY,t);
   }
-  drawDuck(player.x-camX,player.y-camY,player.ang,player.moving,t,player.hurtT);
+  {
+    const pdx=player.x-camX,pdy=player.y-camY;
+    if(player._giantT>0){
+      ctx.save();ctx.translate(pdx,pdy);ctx.scale(1.8,1.8);ctx.translate(-pdx,-pdy);
+      drawDuck(pdx,pdy,player.ang,player.moving,t,player.hurtT);
+      ctx.restore();
+      ctx.strokeStyle='rgba(255,217,61,'+(0.5+0.3*Math.sin(t/120))+')';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(pdx,pdy,42+Math.sin(t/150)*4,0,TAU);ctx.stroke();
+    }else if(player._flyT>0){
+      ELL(pdx,pdy+22,22,7,'rgba(0,0,0,.22)');
+      drawDuck(pdx,pdy-36,player.ang,true,t,player.hurtT);
+      ctx.strokeStyle='rgba(255,255,255,.6)';ctx.lineWidth=2;
+      for(let wi=0;wi<3;wi++){
+        const wy=pdy-20+wi*14;
+        ctx.beginPath();ctx.moveTo(pdx-46,wy);ctx.quadraticCurveTo(pdx-30,wy-4+Math.sin(t/90+wi)*4,pdx-14,wy);ctx.stroke();
+      }
+    }else{
+      drawDuck(pdx,pdy,player.ang,player.moving,t,player.hurtT);
+    }
+  }
   // orbit ducklings
   if(player.weapons.orbit&&player._orb){
     const ids=Object.keys(player._orb);
