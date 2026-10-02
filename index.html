@@ -290,8 +290,54 @@ const LANDMARKS=[
   {f:'tower',x:1960,y:380,label:'🗼 후쿠오카타워',lja:'🗼 福岡タワー',beneCd:0},
   {f:'canal',x:900,y:1050,label:'🎡 캐널시티',lja:'🎡 キャナルシティ',beneCd:0},
   {f:'kushida',x:2320,y:1230,label:'⛩️ 구시다신사',lja:'⛩️ 櫛田神社',beneCd:0},
+  {f:'ohori',x:1150,y:1450,label:'🌳 오호리 공원',lja:'🌳 大濠公園',beneCd:0},
 ];
 
+function drawOhori(px,py,t){
+  // big park
+  const pg=gradC(px,py,10,235,'#5f8f4b','#3a6a34');
+  ctx.fillStyle=pg;ctx.beginPath();ctx.arc(px,py,235,0,TAU);ctx.fill();
+  // jogging path ring
+  ctx.strokeStyle='#d9c9a4';ctx.lineWidth=24;ctx.lineCap='round';
+  ctx.beginPath();ctx.arc(px,py,178,0,TAU);ctx.stroke();
+  ctx.strokeStyle='rgba(120,90,50,.35)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(px,py,190,0,TAU);ctx.stroke();
+  ctx.beginPath();ctx.arc(px,py,166,0,TAU);ctx.stroke();
+  // lane dashes
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=2;ctx.setLineDash([14,18]);
+  ctx.beginPath();ctx.arc(px,py,178,0,TAU);ctx.stroke();ctx.setLineDash([]);
+  // pond
+  softShadow(px,py+10,145,112,0.32);
+  const wg=gradC(px-25,py-25,10,145,'#8fd8ff','#2470b0');
+  ctx.fillStyle=wg;ctx.beginPath();ctx.ellipse(px,py,138,106,0,0,TAU);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=3;
+  ctx.beginPath();ctx.ellipse(px,py,130,99,0,0,TAU);ctx.stroke();
+  HL(px-48,py-38,52,22);
+  // shimmer
+  ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=2;
+  const w2=Math.sin(t/500)*8;
+  ctx.beginPath();ctx.ellipse(px+24+w2,py+12,42,10,0,0.2,Math.PI-0.2);ctx.stroke();
+  // center island
+  ctx.fillStyle='#4d8046';ctx.beginPath();ctx.ellipse(px,py,34,25,0,0,TAU);ctx.fill();
+  ctx.fillStyle='#5a3d24';ctx.fillRect(px-4,py-34,8,22);
+  const tg=gradC(px,py-44,3,26,'#66c46e','#2c7a33');
+  ctx.fillStyle=tg;ctx.beginPath();ctx.arc(px,py-44,24,0,TAU);ctx.fill();
+  HL(px-8,py-52,10,6);
+  // trees around park
+  for(let ti=0;ti<9;ti++){
+    const a=ti/9*TAU+0.35;
+    const tx=px+Math.cos(a)*212,ty=py+Math.sin(a)*212;
+    ELL(tx,ty+10,14,5,'rgba(0,0,0,.2)');
+    ctx.fillStyle='#5a3d24';ctx.fillRect(tx-3,ty-8,6,16);
+    const tg2=gradC(tx-4,ty-18,2,18,'#68c472','#2e7a35');
+    ctx.fillStyle=tg2;ctx.beginPath();ctx.arc(tx,ty-18,17,0,TAU);ctx.fill();
+    HL(tx-6,ty-24,7,4);
+  }
+  // swan boats
+  const ba=Math.sin(t/900)*20;
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(px-60+ba,py+30,16,9,0.2,0,TAU);ctx.fill();
+  ctx.fillStyle='#ff9a5c';ctx.beginPath();ctx.arc(px-60+ba+10,py+22,6,0,TAU);ctx.fill();
+}
 function drawTower(px,py){
   const w=64;
   ctx.fillStyle="rgba(0,0,0,.22)";ctx.beginPath();ctx.ellipse(px+w/2,py+48,w/2+12,7,0,0,6.3);ctx.fill();
@@ -419,7 +465,8 @@ function drawGround(camX,camY,t){
   for(const L of LANDMARKS){
     const lx=L.x-camX, ly=L.y-camY;
     if(lx<-220||lx>LW+220||ly<-220||ly>LH+220)continue;
-    if(L.f==='station')drawStation(lx,ly);
+    if(L.f==='ohori')drawOhori(lx,ly,t);
+     else if(L.f==='station')drawStation(lx,ly);
     else if(L.f==='torii')drawTorii(lx,ly);
     else if(L.f==='shrine')drawShrine(lx,ly);
     else if(L.f==='yatai'){drawYatai(lx,ly,0);drawYatai(lx+44,ly+6,1);}
@@ -867,7 +914,8 @@ bene_yatai:'🍜 든든한 한 끼! 체력 풀회복',bene_retro:'🚂 추억 �
 bene_school:'📣 응원! 공격력 UP (15초)',bene_tower:'🗼 전망대! 쿨다운 감소 (20초)',
 bene_canal:'🎡 쇼핑! 무기 강화',bene_kushida:'⛩️ 야마카사! 무적 (8초)',
 bene_giant:'🍄 파워 모찌! 거대 오리 변신! (12초)',cat_spawn:'🐱 거대 고양이 출현!',
-bosscat_spawn:'🕶️ 보스 고양이 출현! (고양이 10마리 처치!)',bosscat_fly:'🕶️ 선글라스를 끼고 하늘로 날아간다...!',
+bosscat_spawn:'🕶️ 보스 고양이 출현! (고양이 10마리 처치!)',
+ohori_jog:'🏃 오호리 공원! 강제 조깅 2바퀴!',ohori_done:'🏃 조깅 완료! 체력 +30',ohori_lap:'🏃 바퀴 완료!',bosscat_fly:'🕶️ 선글라스를 끼고 하늘로 날아간다...!',
 ending_title:'🎬 게임 엔딩!',ending_msg:'거대 고양이가 선글라스를 끼고 하늘로 날아갔다! 후쿠오카에 평화가 찾아왔다! 🕊️',
 cat_prog:'🐱 고양이',bene_fly:'🪽 하늘을 날다! 무적 비행! (10초)',
 mode_ta:'🏆 타임어택 (2분)',mode_sv:'🦆 서바이벌',
@@ -890,7 +938,8 @@ bene_yatai:'🍜 しっかりご飯! 体力全回復',bene_retro:'🚂 思い出
 bene_school:'📣 応援! 攻撃力UP (15秒)',bene_tower:'🗼 展望台! クールダウン減少 (20秒)',
 bene_canal:'🎡 ショッピング! 武器強化',bene_kushida:'⛩️ 山笠! 無敵 (8秒)',
 bene_giant:'🍄 パワー餅! 巨大アヒル変身! (12秒)',cat_spawn:'🐱 巨大猫出現!',
-bosscat_spawn:'🕶️ ボス猫出現! (猫10匹撃破!)',bosscat_fly:'🕶️ サングラスをかけて空へ飛んでいく...!',
+bosscat_spawn:'🕶️ ボス猫出現! (猫10匹撃破!)',
+ohori_jog:'🏃 大濠公園! 強制ジョギング2周!',ohori_done:'🏃 ジョギング完了! 体力+30',ohori_lap:'🏃 周完了!',bosscat_fly:'🕶️ サングラスをかけて空へ飛んでいく...!',
 ending_title:'🎬 ゲームエンディング!',ending_msg:'巨大猫がサングラスをかけて空へ飛んでいった! 福岡に平和が訪れた! 🕊️',
 cat_prog:'🐱 猫',bene_fly:'🪽 空を飛ぶ! 無敵飛行! (10秒)',
 mode_ta:'🏆 タイムアタック (2分)',mode_sv:'🦆 サバイバル',
@@ -976,6 +1025,7 @@ function resetGame(){
   camX=player.x-LW/2;camY=player.y-LH/2;shake=0;gameT=0;kills=0;spawnT=0;bossN=0;waveN=0;magnetAll=0;pendingLv=0;
   castleT=0;castleCd=0;trainT=-1;trainCd=0;eliteT=25;finalSpawned=false;cshots.length=0;
   timeLeft=120;score=0;catAnnounced=false;catKills=0;bossCatSpawned=false;endingT=0;endingCat=null;endClouds=[];endPetals=[];
+  player._jog=null;player._jogCd=0;
   for(const L of LANDMARKS)L.beneCd=0;
   for(let i=0;i<7;i++){const a=i/7*TAU+rnd(-0.3,0.3),d=rnd(420,560);
     const bx=clamp(player.x+Math.cos(a)*d,30,WORLD_W-30),by=clamp(player.y+Math.sin(a)*d,30,WORLD_H-30);
@@ -1336,7 +1386,22 @@ function update(dt,t){
   // move
   const mv=moveInput();
   p.moving=mv.mag>0.1;
-  if(trainT<0){
+  if(p._jog){
+    // forced jogging around the pond
+    const j=p._jog,spd=p.speed*1.3,da=(spd/j.r)*dt;
+    j.ang+=da;j.total+=da;
+    p.x=j.cx+Math.cos(j.ang)*j.r;
+    p.y=j.cy+Math.sin(j.ang)*j.r;
+    p.moving=true;p.ang=j.ang+Math.PI/2;
+    const lap=Math.floor(j.total/(Math.PI*2));
+    if(lap>j.lastLap&&lap<2){j.lastLap=lap;toast('🏃 1'+T('ohori_lap'));}
+    if(j.total>=Math.PI*4){
+      p._jog=null;p._jogCd=25;
+      p.hp=Math.min(p.maxhp,p.hp+30);
+      waveBanner(T('ohori_done'));
+      boomParts(p.x,p.y,'#7dff8a',18);sPick();
+    }
+  }else if(trainT<0){
     p.x=clamp(p.x+mv.x*p.speed*mv.mag*dt,20,WORLD_W-20);
     p.y=clamp(p.y+mv.y*p.speed*mv.mag*dt,20,WORLD_H-20);
   }
@@ -1406,10 +1471,22 @@ function update(dt,t){
   }
   // landmark benefits (except station/castle which have their own)
   for(const L of LANDMARKS){
-    if(L.f==='station'||L.f==='castle')continue;
+    if(L.f==='station'||L.f==='castle'||L.f==='ohori')continue;
     if(L.beneCd>0){L.beneCd-=dt;continue;}
     const bdx=p.x-L.x,bdy=p.y-L.y;
     if(bdx*bdx+bdy*bdy<110*110)triggerBenefit(L);
+  }
+  // ohori park: forced 2-lap jogging
+  for(const L of LANDMARKS){
+    if(L.f!=='ohori')continue;
+    if(p._jog)break;
+    if(p._jogCd>0){p._jogCd-=dt;break;}
+    const dx=p.x-L.x,dy=p.y-L.y;
+    if(dx*dx+dy*dy<225*225){
+      p._jog={cx:L.x,cy:L.y,r:178,ang:Math.atan2(dy,dx),total:0,lastLap:0};
+      waveBanner(T('ohori_jog'));sBoss();
+    }
+    break;
   }
   // shinkansen ride: hakata -> mojiko
   if(trainCd>0)trainCd-=dt;
@@ -1581,6 +1658,7 @@ function render(t){
   ctx.save();
   if(shake>0)ctx.translate(rnd(-shake,shake)*0.5,rnd(-shake,shake)*0.5);
   drawGround(camX,camY,t);
+  if(state==='intro'){ctx.restore();drawIntro(t);return;}
   if(state==='title'){ctx.restore();titleVignette();return;}
   // gems & pickups under actors
   for(const g of gems){
@@ -1764,6 +1842,100 @@ function titleVignette(){
 }
 
 /* ---------- screens ---------- */
+let introT=0,introClouds=[],introPetals=[];
+function initIntro(){
+  introT=0;introClouds=[];introPetals=[];
+  for(let i=0;i<10;i++)introClouds.push({x:rnd(0,LW),y:rnd(0,LH*0.55),r:rnd(40,100),vx:rnd(8,26),a:rnd(0.45,0.85)});
+}
+function updateIntro(dt){
+  introT+=dt;
+  for(const cl of introClouds){cl.x+=cl.vx*dt;if(cl.x>LW+160){cl.x=-160;cl.y=rnd(0,LH*0.55);}}
+  if(Math.random()<0.45&&introPetals.length<55)
+    introPetals.push({x:rnd(0,LW),y:-12,vx:rnd(-22,22),vy:rnd(32,72),r:rnd(3,7),rot:rnd(0,TAU),vr:rnd(-3,3),col:Math.random()<0.6?'#ffc7dd':'#ffffff'});
+  for(let i=introPetals.length-1;i>=0;i--){
+    const p=introPetals[i];
+    p.x+=p.vx*dt+Math.sin(introT*2+p.rot)*16*dt;p.y+=p.vy*dt;p.rot+=p.vr*dt;
+    if(p.y>LH+24)introPetals.splice(i,1);
+  }
+  if(introT>11)showTitle();
+}
+function drawIntro(t){
+  // ghibli dawn sky
+  const g=ctx.createLinearGradient(0,0,0,LH);
+  g.addColorStop(0,'#6fa8dc');g.addColorStop(0.55,'#a8cbe8');g.addColorStop(0.85,'#ffd9a8');g.addColorStop(1,'#ffbf8a');
+  ctx.fillStyle=g;ctx.fillRect(0,0,LW,LH);
+  // sun
+  const sx=LW*0.76,sy=LH*0.22;
+  const sg=ctx.createRadialGradient(sx,sy,8,sx,sy,130);
+  sg.addColorStop(0,'rgba(255,252,225,.95)');sg.addColorStop(0.35,'rgba(255,242,190,.45)');sg.addColorStop(1,'rgba(255,242,190,0)');
+  ctx.fillStyle=sg;ctx.beginPath();ctx.arc(sx,sy,130,0,TAU);ctx.fill();
+  ctx.fillStyle='#fff9e2';ctx.beginPath();ctx.arc(sx,sy,34,0,TAU);ctx.fill();
+  // clouds
+  for(const cl of introClouds){
+    ctx.fillStyle='rgba(255,255,255,'+cl.a+')';
+    for(let bi=0;bi<5;bi++){
+      ctx.beginPath();ctx.ellipse(cl.x+(bi-2)*cl.r*0.55,cl.y+Math.sin(bi*2.1)*cl.r*0.15,cl.r*0.62,cl.r*0.4,0,0,TAU);ctx.fill();
+    }
+    ctx.fillStyle='rgba(255,236,200,'+(cl.a*0.4)+')';
+    ctx.beginPath();ctx.ellipse(cl.x,cl.y+cl.r*0.22,cl.r*1.2,cl.r*0.3,0,0,TAU);ctx.fill();
+  }
+  // distant mountains
+  ctx.fillStyle='rgba(110,150,185,.5)';
+  ctx.beginPath();ctx.moveTo(0,LH*0.78);
+  for(let mx=0;mx<=LW;mx+=36)ctx.lineTo(mx,LH*0.78-Math.sin(mx/150)*42-Math.sin(mx/57)*20);
+  ctx.lineTo(LW,LH);ctx.lineTo(0,LH);ctx.closePath();ctx.fill();
+  // green hill
+  const hg=ctx.createLinearGradient(0,LH*0.8,0,LH);
+  hg.addColorStop(0,'#6fae56');hg.addColorStop(1,'#3d7a38');
+  ctx.fillStyle=hg;
+  ctx.beginPath();ctx.ellipse(LW/2,LH*1.18,LW*0.78,LH*0.42,0,0,TAU);ctx.fill();
+  // petals
+  for(const p of introPetals){
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+    ctx.fillStyle=p.col;ctx.globalAlpha=0.92;
+    ctx.beginPath();ctx.ellipse(0,0,p.r,p.r*0.55,0,0,TAU);ctx.fill();
+    ctx.restore();
+  }
+  ctx.globalAlpha=1;
+  // duck gliding across the sky
+  const dx=((introT*95)%(LW+260))-130;
+  const dy=LH*0.44+Math.sin(introT*2.1)*34;
+  ctx.save();ctx.translate(dx,dy);ctx.scale(1.1,1.1);
+  const gg2=ctx.createRadialGradient(0,0,4,0,0,70);
+  gg2.addColorStop(0,'rgba(255,244,200,.4)');gg2.addColorStop(1,'rgba(255,244,200,0)');
+  ctx.fillStyle=gg2;ctx.beginPath();ctx.arc(0,0,70,0,TAU);ctx.fill();
+  drawDuck(0,0,0,true,t*1.15,0);
+  ctx.restore();
+  // title fade in
+  const ta=Math.min(1,Math.max(0,(introT-1.6)/2.2));
+  if(ta>0){
+    ctx.globalAlpha=ta;ctx.textAlign='center';
+    ctx.font='900 '+Math.min(66,LW*0.075)+'px sans-serif';
+    ctx.shadowColor='rgba(50,80,130,.65)';ctx.shadowBlur=20;
+    ctx.fillStyle='#ffffff';
+    ctx.fillText(LANG==='ja'?'福岡サバイバル':'🦆 후쿠오카 서바이벌',LW/2,LH*0.3);
+    ctx.font='700 '+Math.min(27,LW*0.034)+'px sans-serif';
+    ctx.fillStyle='#fff6d8';
+    ctx.fillText(LANG==='ja'?'カモの大冒険':'오리의 대모험',LW/2,LH*0.3+48);
+    ctx.shadowBlur=0;ctx.globalAlpha=1;
+  }
+  if(introT>3.2){
+    ctx.globalAlpha=0.55+0.4*Math.sin(t/380);ctx.textAlign='center';
+    ctx.font='700 22px sans-serif';ctx.fillStyle='#fff';
+    ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=10;
+    ctx.fillText(LANG==='ja'?'タップしてスタート':'터치하여 시작',LW/2,LH*0.9);
+    ctx.shadowBlur=0;ctx.globalAlpha=1;
+  }
+  cinemaGrade();
+}
+function showIntro(){
+  state='intro';initIntro();
+  $('ov-title').classList.add('hidden');
+  $('ov-over').classList.add('hidden');
+  $('ov-level').classList.add('hidden');
+  $('ov-pause').classList.add('hidden');
+  $('ov-score').classList.add('hidden');
+}
 function showTitle(){
   state='title';
   $('ov-title').classList.remove('hidden');
@@ -2041,6 +2213,7 @@ function togglePause(){
   if(state==='play'){state='pause';$('ov-pause').classList.remove('hidden');}
   else if(state==='pause'){state='play';$('ov-pause').classList.add('hidden');}
 }
+document.getElementById('cv').addEventListener('pointerdown',()=>{if(state==='intro')showTitle();});
 $('btn-start-ta').onclick=()=>{beep(520,0.1,'square',0.05);startGame('timeattack');};
 $('btn-start-sv').onclick=()=>{beep(520,0.1,'square',0.05);startGame('survival');};
 $('btn-again').onclick=()=>{startGame();};
@@ -2070,6 +2243,7 @@ function loop(ts){
   const dt=Math.min(0.05,(ts-lastT)/1000||0.016);lastT=ts;
   if(state==='play'){update(dt,ts);}
   else if(state==='ending'){updateEnding(dt);}
+  else if(state==='intro'){updateIntro(dt);}
   else if(state==='title'){
     // idle background drift
     camX=WORLD_W/2-LW/2+Math.sin(ts/4000)*120;
@@ -2077,7 +2251,7 @@ function loop(ts){
   }
   if(state!=='levelup')render(ts);
 }
-showTitle();
+showIntro();
 requestAnimationFrame(loop);
 </script>
 </body>
