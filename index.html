@@ -132,6 +132,9 @@
       <div class="stat"><div class="v" id="st-lv">1</div><div class="k" id="t-st-lv">레벨</div></div>
       <div class="stat"><div class="v" id="st-kill">0</div><div class="k" id="t-st-kill">처치</div></div>
     </div>
+    <input id="sv-name" maxlength="12" style="font-size:17px;font-weight:800;text-align:center;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;padding:10px 16px;margin:6px 0 12px;width:220px;font-family:inherit" placeholder="이름 입력 (12자)">
+    <br>
+    <button class="pxbtn" id="btn-save-sv" style="font-size:15px;padding:12px 30px">📸 이미지 저장</button><br><br>
     <button class="pxbtn" id="btn-again">다시 도전</button>
     <div id="best-line2" style="margin-top:10px;font-size:13px;color:#8f9ac0"></div>
   </div></div>
@@ -852,6 +855,8 @@ function applyLang(){
   $('t-title').textContent=T('title');
   $('t-sub').innerHTML=T('subtitle');
   $('t-howto').innerHTML=T('howto');
+  $('sv-name').placeholder=T('sc_name_ph');
+  $('btn-save-sv').textContent=T('sc_save');
   $('btn-start-ta').textContent=T('mode_ta');
   $('btn-start-sv').textContent=T('mode_sv');
   $('t-lvtitle').textContent=T('levelup');
@@ -1660,6 +1665,39 @@ function gameOver(){
     $('ov-over').classList.remove('hidden');
   },900);
 }
+function saveSurvivalImage(){
+  const name=(($('sv-name').value||'').trim()||'무명').slice(0,12);
+  const cv=document.createElement('canvas');
+  cv.width=1080;cv.height=1080;
+  const c=cv.getContext('2d');
+  const g=c.createLinearGradient(0,0,0,1080);
+  g.addColorStop(0,'#1c2440');g.addColorStop(1,'#0b1020');
+  c.fillStyle=g;c.fillRect(0,0,1080,1080);
+  c.strokeStyle='#ffb020';c.lineWidth=10;c.strokeRect(24,24,1032,1032);
+  c.textAlign='center';
+  c.font='900 64px sans-serif';c.fillStyle='#ffe88f';
+  c.fillText('🏆 '+(LANG==='ja'?'福岡サバイバル':'후쿠오카 서바이벌'),540,150);
+  c.font='700 40px sans-serif';c.fillStyle='#aeb8d8';
+  c.fillText(LANG==='ja'?'サバイバル記録':'서바이벌 기록',540,215);
+  c.font='900 110px sans-serif';c.fillStyle='#fff';
+  c.fillText(name,540,360);
+  c.font='900 130px sans-serif';c.fillStyle='#7dff8a';
+  c.fillText(fmtT(gameT),540,545);
+  c.font='700 44px sans-serif';c.fillStyle='#aeb8d8';
+  c.fillText(LANG==='ja'?'生存時間':'생존 시간',540,605);
+  c.font='700 48px sans-serif';c.fillStyle='#d6dcf2';
+  const kl=LANG==='ja'?'撃破':'처치',lv=LANG==='ja'?'レベル':'레벨';
+  c.fillText('☠️ '+kills+' '+kl+'   ·   Lv '+player.level+' '+lv,540,705);
+  c.font='400 36px sans-serif';c.fillStyle='#8f9ac0';
+  const dt=new Date();
+  c.fillText(dt.getFullYear()+'.'+(dt.getMonth()+1)+'.'+dt.getDate(),540,790);
+  c.font='120px sans-serif';
+  c.fillText('🦆🍜',540,940);
+  const a=document.createElement('a');
+  a.download='fukuoka-survival-'+Date.now()+'.png';
+  a.href=cv.toDataURL('image/png');
+  document.body.appendChild(a);a.click();a.remove();
+}
 function applyGiant(){
   const p=player;
   if(!p._giantT)p.dmgMul*=2;
@@ -1804,6 +1842,7 @@ document.addEventListener('fullscreenchange',()=>{fitCanvas();});
 $('lang-ko').onclick=()=>{setLang('ko');};
 $('lang-ja').onclick=()=>{setLang('ja');};
 $('btn-save-img').onclick=()=>{saveScoreImage();};
+$('btn-save-sv').onclick=()=>{saveSurvivalImage();};
 $('btn-again2').onclick=()=>{beep(520,0.1,'square',0.05);startGame(gameMode);};
 applyLang();
 $('btn-resume').onclick=()=>togglePause();
