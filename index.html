@@ -921,7 +921,7 @@ cat_prog:'🐱 고양이',bene_fly:'🪽 하늘을 날다! 무적 비행! (10초
 mode_ta:'🏆 타임어택 (2분)',mode_sv:'🦆 서바이벌',
 sc_title:'🏆 타임어택 결과',sc_score:'점수',sc_name_ph:'이름 입력 (12자)',
 sc_save:'📸 이미지 저장',sc_again:'다시 도전',sc_board:'🏆 명예의 전당',
-sc_timeup:'시간 종료!',sc_died:'전사...',ta_time:'남은 시간'},
+sc_timeup:'시간 종료!',sc_died:'전사...',ta_time:'남은 시간',plane_takeoff:'🛫 후쿠오카로 출발!',plane_fly:'✈️ 후쿠오카로 비행 중...',plane_arrive:'🛬 후쿠오카 도착!',plane_skip:'탭하여 건너뛰기'},
 ja:{title:'福岡サバイバル',subtitle:'ゾンビ鳩の群れがやってくる!<br>フードックと一緒に福岡旅行を生き残れ 🦆🍜',
 howto:'🕹️ <b>移動:</b> WASD / 矢印キー / 画面左ドラッグ(ジョイスティック)<br>🍜 <b>攻撃:</b> 自動! 福岡名物武器6種で戦おう<br>💎 <b>成長:</b> お土産ジェムを集めてレベルアップ → 3枚から1枚選択<br>👹 <b>ボス:</b> 90秒ごとに鳩王出現!<br>🍜 <b>アイテム:</b> ラーメン(体力回復)、磁石(ジェム吸収)<br>🗺️ <b>旅行地:</b> 博多駅→太宰府→中洲→小倉城→門司港',
 start:'ゲームスタート',best:'🏆 最高記録: ',levelup:'⬆️ レベルアップ! 選択',levelup_sub:'3枚から1枚選んでね',stat_up:'ステータス強化',
@@ -945,7 +945,7 @@ cat_prog:'🐱 猫',bene_fly:'🪽 空を飛ぶ! 無敵飛行! (10秒)',
 mode_ta:'🏆 タイムアタック (2分)',mode_sv:'🦆 サバイバル',
 sc_title:'🏆 タイムアタック結果',sc_score:'スコア',sc_name_ph:'名前入力 (12字)',
 sc_save:'📸 画像保存',sc_again:'もう一度',sc_board:'🏆 殿堂入り',
-sc_timeup:'時間終了!',sc_died:'戦死...',ta_time:'残り時間'},
+sc_timeup:'時間終了!',sc_died:'戦死...',ta_time:'残り時間',plane_takeoff:'🛫 福岡へ出発！',plane_fly:'✈️ 福岡へ飛行中...',plane_arrive:'🛬 福岡到着！',plane_skip:'タップでスキップ'},
 };
 function T(k){return (STR[LANG]&&STR[LANG][k])||STR.ko[k]||k;}
 function addScore(n){if(gameMode==='timeattack'&&state==='play')score+=n;}
@@ -1659,6 +1659,7 @@ function render(t){
   if(shake>0)ctx.translate(rnd(-shake,shake)*0.5,rnd(-shake,shake)*0.5);
   drawGround(camX,camY,t);
   if(state==='intro'){ctx.restore();drawIntro(t);return;}
+  if(state==='plane'){ctx.restore();drawPlane(t);return;}
   if(state==='title'){ctx.restore();titleVignette();return;}
   // gems & pickups under actors
   for(const g of gems){
@@ -1952,7 +1953,10 @@ function showTitle(){
   }catch(e){}
 }
 function startGame(mode){
-  gameMode=mode||'survival';
+  startPlaneIntro(mode||'survival');
+}
+function beginPlay(){
+  gameMode=planeMode;
   resetGame();
   $('ov-title').classList.add('hidden');
   $('ov-over').classList.add('hidden');
@@ -1961,6 +1965,197 @@ function startGame(mode){
   state='play';
   waveBanner(T('wave'));
   beep(440,0.15,'square',0.05,880);
+}
+// ===== plane intro cinematic: duck flies to Fukuoka (10s) =====
+let planeT=0,planeMode='survival',planeClouds=[],planeSnd={};
+function startPlaneIntro(mode){
+  planeMode=mode||'survival';
+  planeT=0;planeSnd={};
+  planeClouds=[];
+  for(let i=0;i<12;i++)planeClouds.push({x:rnd(0,LW),y:rnd(30,LH*0.62),r:rnd(26,64),v:rnd(30,90),a:rnd(0.55,0.9)});
+  state='plane';
+  $('ov-title').classList.add('hidden');
+  $('ov-over').classList.add('hidden');
+  $('ov-score').classList.add('hidden');
+}
+function updatePlane(dt){
+  planeT+=dt;
+  const spd=1+planeT*0.12;
+  for(const c of planeClouds){c.x-=c.v*spd*dt;if(c.x<-150){c.x=LW+150;c.y=rnd(30,LH*0.62);}}
+  if(planeT>=0.15&&!planeSnd.t){planeSnd.t=1;beep(280,0.6,'sawtooth',0.035,720);}
+  if(planeT>=3.2&&!planeSnd.c){planeSnd.c=1;beep(660,0.15,'square',0.04,990);}
+  if(planeT>=7&&!planeSnd.l){planeSnd.l=1;beep(720,0.5,'sawtooth',0.035,340);}
+  if(planeT>=9.15&&!planeSnd.d){planeSnd.d=1;beep(170,0.25,'sine',0.09,110);beep(880,0.2,'square',0.05,1320);}
+  if(planeT>=10)beginPlay();
+}
+function planeKey(t){
+  const kf=[[-0.6,-0.22,0.80],[0,-0.18,0.76],[3.2,0.42,0.30],[7,0.74,0.28],[9.15,0.58,0.685],[10.6,0.36,0.685]];
+  let i=0;while(i<kf.length-2&&t>kf[i+1][0])i++;
+  const a=kf[i],b=kf[i+1];
+  const u=Math.min(1,Math.max(0,(t-a[0])/(b[0]-a[0])));
+  const e=u*u*(3-2*u);
+  return {x:(a[1]+(b[1]-a[1])*e)*LW,y:(a[2]+(b[2]-a[2])*e)*LH};
+}
+function drawCutePlane(x,y,ang,sc,t,gear){
+  ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.scale(sc,sc);
+  ctx.fillStyle='#d84a35';
+  ctx.beginPath();ctx.moveTo(-50,-6);ctx.lineTo(-70,-36);ctx.lineTo(-46,-32);ctx.lineTo(-38,-8);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#b93a28';
+  ctx.beginPath();ctx.ellipse(-50,3,20,7,0.15,0,TAU);ctx.fill();
+  const fg=ctx.createLinearGradient(0,-24,0,24);
+  fg.addColorStop(0,'#ffe066');fg.addColorStop(0.55,'#ffc93c');fg.addColorStop(1,'#f0a020');
+  ctx.fillStyle=fg;
+  ctx.beginPath();ctx.ellipse(0,0,62,22,0,0,TAU);ctx.fill();
+  ctx.fillStyle='#e8442e';ctx.fillRect(-42,4,88,7);
+  ctx.fillStyle='#e8442e';
+  ctx.beginPath();ctx.moveTo(-8,-16);ctx.lineTo(18,-16);ctx.lineTo(6,-54);ctx.lineTo(-20,-54);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ff6b52';
+  ctx.beginPath();ctx.moveTo(-8,-16);ctx.lineTo(18,-16);ctx.lineTo(13,-32);ctx.lineTo(-3,-32);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(185,232,255,.96)';
+  ctx.beginPath();ctx.ellipse(18,-10,17,13,0,0,TAU);ctx.fill();
+  ctx.strokeStyle='#c98f2d';ctx.lineWidth=3;
+  ctx.beginPath();ctx.ellipse(18,-10,17,13,0,0,TAU);ctx.stroke();
+  ctx.fillStyle='#ffd94d';
+  ctx.beginPath();ctx.arc(18,-8,10,0,TAU);ctx.fill();
+  ctx.fillStyle='#5b4632';ctx.fillRect(8,-13,20,5);
+  ctx.fillStyle='rgba(210,242,255,.95)';
+  ctx.beginPath();ctx.arc(14,-10.5,3.4,0,TAU);ctx.arc(22,-10.5,3.4,0,TAU);ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(13.2,-11.2,1.2,0,TAU);ctx.arc(21.2,-11.2,1.2,0,TAU);ctx.fill();
+  ctx.fillStyle='#ff9f1c';
+  ctx.beginPath();ctx.ellipse(27.5,-6,5,3.4,0,0,TAU);ctx.fill();
+  const wv=Math.sin(t/90)*6;
+  ctx.fillStyle='#e8442e';
+  ctx.beginPath();ctx.moveTo(9,-3);
+  ctx.quadraticCurveTo(-14,-11+wv,-32,-4+wv);
+  ctx.lineTo(-30,3+wv);ctx.quadraticCurveTo(-12,-1+wv,9,3);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(225,238,248,.35)';
+  ctx.beginPath();ctx.ellipse(68,0,6,30,0,0,TAU);ctx.fill();
+  const pa=t/26;
+  ctx.strokeStyle='#8a97a5';ctx.lineWidth=5;ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.moveTo(68+Math.cos(pa)*30,Math.sin(pa)*30);ctx.lineTo(68-Math.cos(pa)*30,-Math.sin(pa)*30);
+  ctx.moveTo(68+Math.cos(pa+1.57)*30,Math.sin(pa+1.57)*30);ctx.lineTo(68-Math.cos(pa+1.57)*30,-Math.sin(pa+1.57)*30);
+  ctx.stroke();
+  ctx.fillStyle='#e8442e';ctx.beginPath();ctx.arc(68,0,6,0,TAU);ctx.fill();
+  if(gear){
+    ctx.strokeStyle='#5b4632';ctx.lineWidth=4;
+    ctx.beginPath();ctx.moveTo(30,18);ctx.lineTo(30,34);ctx.moveTo(-30,16);ctx.lineTo(-30,32);ctx.stroke();
+    ctx.fillStyle='#333';
+    ctx.beginPath();ctx.arc(30,37,7,0,TAU);ctx.arc(-30,35,7,0,TAU);ctx.fill();
+  }
+  ctx.restore();
+}
+function drawPlaneCity(){
+  const gy=LH*0.80;
+  ctx.fillStyle='rgba(120,155,190,.55)';
+  ctx.beginPath();ctx.moveTo(0,gy);
+  for(let mx=0;mx<=LW;mx+=40)ctx.lineTo(mx,gy-46-Math.sin(mx/140)*30-Math.sin(mx/53)*14);
+  ctx.lineTo(LW,gy);ctx.lineTo(0,gy);ctx.closePath();ctx.fill();
+  const bcols=['#d9a066','#c98a5a','#e0b273','#b87a4e'];
+  let bx=10;
+  ctx.textAlign='left';
+  while(bx<LW-40){
+    const bw=34+((bx*37)%44),bh=50+((bx*53)%70);
+    ctx.fillStyle=bcols[Math.floor(bx/40)%4];
+    ctx.fillRect(bx,gy-bh,bw,bh);
+    ctx.fillStyle='rgba(255,244,214,.75)';
+    for(let wy=gy-bh+10;wy<gy-12;wy+=16)for(let wx=bx+6;wx<bx+bw-6;wx+=13)ctx.fillRect(wx,wy,7,9);
+    bx+=bw+8;
+  }
+  const tx=LW*0.80;
+  ctx.fillStyle='#9fb8c8';
+  ctx.beginPath();ctx.moveTo(tx-26,gy);ctx.lineTo(tx-8,gy-190);ctx.lineTo(tx+8,gy-190);ctx.lineTo(tx+26,gy);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#7e97a8';ctx.fillRect(tx-16,gy-150,32,20);
+  ctx.fillStyle='#e8f2f8';ctx.fillRect(tx-10,gy-146,20,12);
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(tx,gy-196,7,0,TAU);ctx.fill();
+  const gx=LW*0.16;
+  ctx.fillStyle='#c0392b';
+  ctx.fillRect(gx-26,gy-64,10,64);ctx.fillRect(gx+16,gy-64,10,64);
+  ctx.fillRect(gx-40,gy-78,80,12);
+  ctx.fillRect(gx-32,gy-60,64,8);
+  ctx.fillStyle='#8e2b20';ctx.fillRect(gx-44,gy-84,88,8);
+  const px=LW*0.52;
+  ctx.fillStyle='#5d4037';
+  ctx.beginPath();ctx.moveTo(px-46,gy-40);ctx.lineTo(px,gy-72);ctx.lineTo(px+46,gy-40);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#4e342e';ctx.fillRect(px-38,gy-40,76,40);
+  ctx.fillStyle='#3e2723';
+  ctx.beginPath();ctx.moveTo(px-30,gy-72);ctx.lineTo(px,gy-92);ctx.lineTo(px+30,gy-72);ctx.closePath();ctx.fill();
+}
+function drawPlane(t){
+  const g=ctx.createLinearGradient(0,0,0,LH);
+  g.addColorStop(0,'#5f9fd8');g.addColorStop(0.55,'#a5d4ee');g.addColorStop(0.85,'#ffd9a8');g.addColorStop(1,'#ffbf8a');
+  ctx.fillStyle=g;ctx.fillRect(0,0,LW,LH);
+  const sx=LW*0.78,sy=LH*0.20;
+  const sg=ctx.createRadialGradient(sx,sy,8,sx,sy,140);
+  sg.addColorStop(0,'rgba(255,252,225,.95)');sg.addColorStop(0.35,'rgba(255,242,190,.45)');sg.addColorStop(1,'rgba(255,242,190,0)');
+  ctx.fillStyle=sg;ctx.beginPath();ctx.arc(sx,sy,140,0,TAU);ctx.fill();
+  ctx.fillStyle='#fff9e2';ctx.beginPath();ctx.arc(sx,sy,34,0,TAU);ctx.fill();
+  drawPlaneCity();
+  const gy=LH*0.80;
+  ctx.fillStyle='#69a84f';ctx.fillRect(0,gy,LW,LH-gy);
+  ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(0,gy,LW,6);
+  const ra=Math.min(1,Math.max(0,(planeT-6.2)/0.8));
+  if(ra>0){
+    ctx.globalAlpha=ra;
+    ctx.fillStyle='#5a5f6a';ctx.fillRect(LW*0.08,gy+LH*0.075,LW*0.84,LH*0.045);
+    ctx.fillStyle='#fff';
+    for(let dx=LW*0.12;dx<LW*0.88;dx+=44)ctx.fillRect(dx,gy+LH*0.075+LH*0.018,26,5);
+    ctx.globalAlpha=1;
+  }
+  for(const cl of planeClouds){
+    ctx.fillStyle='rgba(255,255,255,'+cl.a+')';
+    for(let bi=0;bi<5;bi++){
+      ctx.beginPath();ctx.ellipse(cl.x+(bi-2)*cl.r*0.55,cl.y+Math.sin(bi*2.1+t/700)*cl.r*0.1,cl.r*0.62,cl.r*0.4,0,0,TAU);ctx.fill();
+    }
+  }
+  if(planeT>2.5&&planeT<8.6){
+    ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=3;ctx.lineCap='round';
+    for(let i=0;i<7;i++){
+      const lx=((t/6+i*173)%(LW+200))-100,ly=(i*97+t/9)%LH;
+      ctx.globalAlpha=0.35;
+      ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(lx-90,ly);ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+  }
+  const p0=planeKey(Math.max(0,planeT-0.06)),p1=planeKey(planeT+0.06);
+  let ang=Math.atan2(p1.y-p0.y,p1.x-p0.x);
+  ang=Math.max(-0.38,Math.min(0.42,ang));
+  const pp=planeKey(planeT);
+  const psc=0.75+0.5*Math.min(1,Math.max(0,(pp.y/LH-0.28)/0.42));
+  const gear=planeT>6.4;
+  if(planeT<10.4)drawCutePlane(pp.x,pp.y,ang,psc,t,gear);
+  if(planeT>=9.3){
+    const wa=Math.min(1,(planeT-9.3)/0.5);
+    ctx.globalAlpha=wa;ctx.textAlign='center';
+    ctx.font='900 '+Math.min(40,LW*0.05)+'px sans-serif';
+    ctx.fillStyle='#fff';ctx.shadowColor='rgba(0,0,0,.4)';ctx.shadowBlur=12;
+    ctx.fillText('🐦'+' '+T('plane_arrive'),LW/2,LH*0.42);
+    ctx.shadowBlur=0;ctx.globalAlpha=1;
+  }
+  let ph;
+  if(planeT<3.2)ph=T('plane_takeoff');
+  else if(planeT<7)ph=T('plane_fly');
+  else ph='';
+  if(ph){
+    ctx.textAlign='center';
+    const fs=Math.min(34,LW*0.042);
+    ctx.font='900 '+fs+'px sans-serif';
+    const tw=ctx.measureText(ph).width;
+    ctx.fillStyle='rgba(10,18,38,.55)';
+    const bx=LW/2,by=LH*0.155;
+    ctx.beginPath();ctx.roundRect(bx-tw/2-22,by-fs-8,tw+44,fs+30,16);ctx.fill();
+    ctx.fillStyle='#ffe88f';
+    ctx.fillText(ph,bx,by+6);
+  }
+  const bw2=Math.min(LW*0.5,420),bx2=(LW-bw2)/2,by2=LH-34;
+  ctx.fillStyle='rgba(10,18,38,.5)';
+  ctx.beginPath();ctx.roundRect(bx2,by2,bw2,10,5);ctx.fill();
+  ctx.fillStyle='#ffd94d';
+  ctx.beginPath();ctx.roundRect(bx2,by2,bw2*Math.min(1,planeT/10),10,5);ctx.fill();
+  ctx.textAlign='right';ctx.font='700 15px sans-serif';ctx.fillStyle='rgba(255,255,255,.85)';
+  ctx.fillText(T('plane_skip'),LW-16,LH-40);
+  cinemaGrade();
 }
 function gameOver(){
   if(gameMode==='timeattack'){timeUp(true);return;}
@@ -2213,7 +2408,7 @@ function togglePause(){
   if(state==='play'){state='pause';$('ov-pause').classList.remove('hidden');}
   else if(state==='pause'){state='play';$('ov-pause').classList.add('hidden');}
 }
-document.getElementById('cv').addEventListener('pointerdown',()=>{if(state==='intro')showTitle();});
+document.getElementById('cv').addEventListener('pointerdown',()=>{if(state==='intro')showTitle();else if(state==='plane'&&planeT>0.8)beginPlay();});
 $('btn-start-ta').onclick=()=>{beep(520,0.1,'square',0.05);startGame('timeattack');};
 $('btn-start-sv').onclick=()=>{beep(520,0.1,'square',0.05);startGame('survival');};
 $('btn-again').onclick=()=>{startGame();};
@@ -2244,6 +2439,7 @@ function loop(ts){
   if(state==='play'){update(dt,ts);}
   else if(state==='ending'){updateEnding(dt);}
   else if(state==='intro'){updateIntro(dt);}
+  else if(state==='plane'){updatePlane(dt);}
   else if(state==='title'){
     // idle background drift
     camX=WORLD_W/2-LW/2+Math.sin(ts/4000)*120;
