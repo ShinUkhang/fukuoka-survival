@@ -230,7 +230,7 @@ cv.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch'||e.pointerType==='pen'){
     const r=cv.getBoundingClientRect();
     const x=e.clientX-r.left,y=e.clientY-r.top;
-    if(x<r.width*0.55&&!joy.active){joy.active=true;joy.id=e.pointerId;joy.bx=x;joy.by=y;joy.dx=0;joy.dy=0;joyShow(e.clientX-60,e.clientY-60);cv.setPointerCapture(e.pointerId);}
+    if(!joy.active){joy.active=true;joy.id=e.pointerId;joy.bx=x;joy.by=y;joy.dx=0;joy.dy=0;joyShow(e.clientX-60,e.clientY-60);try{cv.setPointerCapture(e.pointerId);}catch(_){}}
   }
 });
 cv.addEventListener('pointermove',e=>{if(joy.active&&e.pointerId===joy.id){const r=cv.getBoundingClientRect();joyMove(e.clientX-r.left,e.clientY-r.top);}});
