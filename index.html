@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>후쿠오카 서바이벌</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="후쿠오카 서바이벌">
+<meta name="theme-color" content="#0b1020">
+<meta name="description" content="좀비 비둘기 무리가 몰려온다! 후더덕과 함께 후쿠오카 여행에서 살아남아라">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="manifest" href="manifest.json">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{width:100%;height:100%;overflow:hidden;background:#0b1020;font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -532,6 +542,20 @@ function drawMinimap(){
 function drawPickup(p,camX,camY,t){
   if(p.life<5&&Math.floor(t/180)%2===0)return;
   const x=p.x-camX,y=p.y-camY+Math.sin(t/280)*3;
+  if(p.kind==='bomb'){
+    ELL(x,y+10,12,4,'rgba(0,0,0,.25)');
+    const bg2=gradC(x-3,y-3,2,13,'#5a5a6a','#1d1d24');
+    ctx.fillStyle=bg2;ctx.beginPath();ctx.arc(x,y,12,0,TAU);ctx.fill();
+    HL(x-4,y-5,5,3);
+    ctx.strokeStyle='#8a6a3f';ctx.lineWidth=2.4;
+    ctx.beginPath();ctx.moveTo(x+6,y-9);ctx.quadraticCurveTo(x+12,y-16,x+8,y-20);ctx.stroke();
+    const fs2=3+Math.sin(t/90)*1.5;
+    ctx.fillStyle='#ffd93d';ctx.beginPath();ctx.arc(x+8,y-20,fs2,0,TAU);ctx.fill();
+    ctx.fillStyle='#ff7b1f';ctx.beginPath();ctx.arc(x+8,y-20,fs2*0.55,0,TAU);ctx.fill();
+    ctx.font='900 11px sans-serif';ctx.textAlign='center';ctx.fillStyle='#fff';
+    ctx.fillText('💣',x,y+4);
+    return;
+  }
   ELL(x,y+10,12,4,'rgba(0,0,0,.25)');
   if(p.kind==='corn'){
     // ramen bowl
@@ -1223,7 +1247,17 @@ function update(dt,t){
     if(pk.life<=0){pickups.splice(i,1);continue;}
     if(dist2(pk.x,pk.y,p.x,p.y)<30*30){
       pickups.splice(i,1);sPick();
-      if(pk.kind==='corn'){p.hp=Math.min(p.maxhp,p.hp+30);dnums.push({x:p.x,y:p.y-30,txt:'+30',t:0.8,col:'#7dff8a'});}
+      if(pk.kind==='bomb'){
+        const bdmg=130+gameT*0.25,br=300;
+        sBoom();shake=Math.max(shake,12);
+        boomParts(p.x,p.y,'#ff9a3d',30);boomParts(p.x,p.y,'#5a5a5a',20);
+        for(const e of enemies){
+          const dx=e.x-p.x,dy=e.y-p.y;
+          if(dx*dx+dy*dy<br*br)damageEnemy(e,bdmg,(dx/br)*160,(dy/br)*160);
+        }
+        dnums.push({x:p.x,y:p.y-40,txt:'BOOM!',t:1,col:'#ffb020'});
+      }
+      else if(pk.kind==='corn'){p.hp=Math.min(p.maxhp,p.hp+30);dnums.push({x:p.x,y:p.y-30,txt:'+30',t:0.8,col:'#7dff8a'});}
       else{magnetAll=3;waveBanner(T('magnet'));}
       boomParts(p.x,p.y,'#7dff8a',10);
     }
@@ -1232,6 +1266,11 @@ function update(dt,t){
   if(Math.random()<dt*0.03){
     pickups.push({x:clamp(p.x+rnd(-400,400),40,WORLD_W-40),y:clamp(p.y+rnd(-300,300),40,WORLD_H-40),
       kind:Math.random()<0.6?'corn':'magnet',seed:rnd(0,TAU),life:25});
+  }
+  // bombs (rarer, big damage)
+  if(Math.random()<dt*0.012){
+    pickups.push({x:clamp(p.x+rnd(-450,450),40,WORLD_W-40),y:clamp(p.y+rnd(-350,350),40,WORLD_H-40),
+      kind:'bomb',seed:rnd(0,TAU),life:25});
   }
   // particles
   for(let i=parts.length-1;i>=0;i--){
